@@ -9,7 +9,6 @@
   "searchTryDemo": "Dùng thử (Đà Lạt)",
   "searchNoResults": "Không tìm thấy kết quả phù hợp. Hãy thử từ khóa khác.",
   "searchError": "Có lỗi xảy ra. Kiểm tra mạng hoặc dùng thử demo.",
-  "searchNoPlacesKey": "Thêm Google Places API key ở Cài đặt → API Keys để tìm địa điểm thật, hoặc dùng thử demo.",
   "searchChooseMatch": "Chọn địa điểm",
 
   "graphBack": "Quay lại",
@@ -38,7 +37,7 @@
   "settingsLanguageUnits": "Ngôn ngữ & Đơn vị",
   "settingsLanguageUnitsDesc": "Ngôn ngữ giao diện, ngôn ngữ nội dung, đơn vị khoảng cách/nhiệt độ",
   "settingsApiKeys": "API Keys",
-  "settingsApiKeysDesc": "Địa điểm, thời tiết, tìm kiếm — cần để lấy dữ liệu thật",
+  "settingsApiKeysDesc": "Thời tiết, tìm kiếm — địa điểm/geocoding không cần key",
   "settingsAiAssistant": "Trợ lý AI",
   "settingsAiAssistantDesc": "API key LLM của riêng bạn, độ chi tiết, nguồn",
   "settingsDataPrivacy": "Dữ liệu & Quyền riêng tư",
@@ -58,8 +57,7 @@
   "systemDefault": "Theo hệ thống",
 
   "apiKeysTitle": "API Keys",
-  "placesApiKeyLabel": "Google Places / Geocoding API key",
-  "placesApiKeyDesc": "Cần để tìm kiếm, xem địa điểm gần và sân bay gần nhất.",
+  "placesNoKeyNote": "Tìm kiếm, địa điểm gần và sân bay gần nhất dùng OpenStreetMap (Nominatim + Overpass) — miễn phí, không cần API key.",
   "weatherApiKeyLabel": "OpenWeatherMap API key",
   "weatherApiKeyDesc": "Cần để xem thời tiết hiện tại.",
   "searchApiKeyLabel": "Tavily search API key (tùy chọn)",

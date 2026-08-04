@@ -72,12 +72,6 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String?> getPlacesApiKey() => _secureStorage.readPlacesApiKey();
-  Future<void> setPlacesApiKey(String apiKey) async {
-    await _secureStorage.writePlacesApiKey(apiKey);
-    notifyListeners();
-  }
-
   Future<String?> getWeatherApiKey() => _secureStorage.readWeatherApiKey();
   Future<void> setWeatherApiKey(String apiKey) async {
     await _secureStorage.writeWeatherApiKey(apiKey);
@@ -132,7 +126,6 @@ class AppSettings extends ChangeNotifier {
       detailLevel: detailLevel,
       showSources: showSources,
       contentLanguage: contentLanguage,
-      placesApiKey: await getPlacesApiKey(),
       weatherApiKey: await getWeatherApiKey(),
       searchApiKey: await getSearchApiKey(),
     );

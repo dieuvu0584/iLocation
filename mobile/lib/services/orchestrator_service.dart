@@ -50,16 +50,14 @@ class OrchestratorService {
   }
 
   Future<ChildItem?> _fetchApiItem(String itemId, LocationInfo location, RequestSettings settings) async {
-    if (!settings.hasPlacesKey && (itemId == 'places' || itemId == 'airport')) {
-      return _missingKeyItem(itemId, 'Google Places');
-    }
     if (!settings.hasWeatherKey && itemId == 'weather') {
       return _missingKeyItem(itemId, 'Weather');
     }
     try {
-      if (itemId == 'places') return await _places.getNearbyPlaces(location.lat, location.lng, settings.placesApiKey!);
+      // Places/airport run on OpenStreetMap (Nominatim + Overpass) — no key needed.
+      if (itemId == 'places') return await _places.getNearbyPlaces(location.lat, location.lng);
       if (itemId == 'weather') return await _weather.getWeather(location.lat, location.lng, settings.weatherApiKey!);
-      if (itemId == 'airport') return await _places.getNearestAirport(location.lat, location.lng, settings.placesApiKey!);
+      if (itemId == 'airport') return await _places.getNearestAirport(location.lat, location.lng);
     } catch (_) {
       return null;
     }
@@ -81,9 +79,9 @@ class OrchestratorService {
     }
 
     var extraContext = '';
-    if (itemId == 'health' && settings.hasPlacesKey) {
+    if (itemId == 'health') {
       try {
-        extraContext = await _places.getNearestHospitalSnippet(location.lat, location.lng, settings.placesApiKey!);
+        extraContext = await _places.getNearestHospitalSnippet(location.lat, location.lng);
       } catch (_) {
         // best-effort grounding only
       }

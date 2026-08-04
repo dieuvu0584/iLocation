@@ -28,6 +28,11 @@ danh sách tìm kiếm gần đây) — chưa chốt UI, cần thiết kế ti�
 > Weather, Tavily, LLM) bằng key người dùng tự nhập, cache bằng SQLite cục
 > bộ trên máy (`sqflite`), không có server nào cả. Chi tiết đầy đủ + lý do
 > đổi hướng xem `CLAUDE.md` mục "Quyết định đã chốt → 2026-08-04 (đợt 2)".
+>
+> **Cập nhật 2026-08-04 (đợt 3)**: bảng §2 bên dưới ghi "Google Places API"
+> cho địa điểm gần — KHÔNG còn đúng. Đã đổi sang OpenStreetMap (Nominatim +
+> Overpass API), miễn phí, không cần API key. Xem `CLAUDE.md` mục "Quyết
+> định đã chốt → 2026-08-04 (đợt 3)".
 > Phần còn lại của tài liệu này (data model §4, node-graph UI §6, palette
 > §9) vẫn đúng nguyên vẹn — chỉ có "ai gọi API" và "cache ở đâu" là đổi.
 

@@ -26,6 +26,10 @@ extension DetailLevelX on DetailLevel {
 /// Everything needed to resolve one location's data, read fresh from
 /// AppSettings/SecureStorageService right before use — keys are never
 /// cached in memory beyond the single orchestrator run that needs them.
+///
+/// No `placesApiKey`: Places/Geocoding runs on OpenStreetMap
+/// (Nominatim + Overpass), which needs no key at all (CLAUDE.md "Quyết
+/// định đã chốt 2026-08-04 (đợt 3)").
 class RequestSettings {
   final bool llmEnabled;
   final ByokProvider llmProvider;
@@ -33,7 +37,6 @@ class RequestSettings {
   final DetailLevel detailLevel;
   final bool showSources;
   final String contentLanguage;
-  final String? placesApiKey;
   final String? weatherApiKey;
   final String? searchApiKey;
 
@@ -44,13 +47,11 @@ class RequestSettings {
     required this.detailLevel,
     required this.showSources,
     required this.contentLanguage,
-    this.placesApiKey,
     this.weatherApiKey,
     this.searchApiKey,
   });
 
   bool get hasLlmKey => llmApiKey != null && llmApiKey!.trim().isNotEmpty;
-  bool get hasPlacesKey => placesApiKey != null && placesApiKey!.trim().isNotEmpty;
   bool get hasWeatherKey => weatherApiKey != null && weatherApiKey!.trim().isNotEmpty;
   bool get hasSearchKey => searchApiKey != null && searchApiKey!.trim().isNotEmpty;
 }

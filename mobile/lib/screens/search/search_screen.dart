@@ -5,12 +5,10 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../models/location_models.dart';
 import '../../services/geocode_service.dart';
 import '../../services/history_service.dart';
-import '../../state/app_settings.dart';
 import '../../state/location_provider.dart';
 import '../../theme/colors.dart';
 import '../graph/node_graph_screen.dart';
 import '../history/history_screen.dart';
-import '../settings/api_keys_settings_screen.dart';
 import '../settings/settings_home_screen.dart';
 
 /// Entry point of the app. No UI spec existed for this screen (SDD §10) —
@@ -34,26 +32,14 @@ class _SearchScreenState extends State<SearchScreen> {
   Future<void> _search() async {
     final query = _controller.text.trim();
     if (query.isEmpty) return;
-    final l10n = AppLocalizations.of(context)!;
     setState(() {
       _status = _SearchStatus.loading;
       _error = null;
     });
 
-    final appSettings = context.read<AppSettings>();
     final geocodeService = context.read<GeocodeService>();
     try {
-      final placesApiKey = await appSettings.getPlacesApiKey();
-      if (!mounted) return;
-      if (placesApiKey == null || placesApiKey.trim().isEmpty) {
-        setState(() {
-          _error = l10n.searchNoPlacesKey;
-          _status = _SearchStatus.error;
-        });
-        return;
-      }
-
-      final results = await geocodeService.searchCandidates(query, placesApiKey);
+      final results = await geocodeService.searchCandidates(query);
       if (!mounted) return;
       setState(() {
         _results = results;
@@ -135,17 +121,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text(_error ?? l10n.searchError, style: const TextStyle(color: AppColors.error)),
                 ),
-                Wrap(
-                  spacing: 12,
-                  children: [
-                    OutlinedButton(
-                      onPressed: () => Navigator.of(context)
-                          .push(MaterialPageRoute(builder: (_) => const ApiKeysSettingsScreen())),
-                      child: Text(l10n.settingsApiKeys),
-                    ),
-                    OutlinedButton(onPressed: _openDemo, child: Text(l10n.searchTryDemo)),
-                  ],
-                ),
+                OutlinedButton(onPressed: _openDemo, child: Text(l10n.searchTryDemo)),
               ],
               if (_status == _SearchStatus.idle && _results.isEmpty && _controller.text.isNotEmpty)
                 Padding(

@@ -31,10 +31,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get searchError => 'Có lỗi xảy ra. Kiểm tra mạng hoặc dùng thử demo.';
 
   @override
-  String get searchNoPlacesKey =>
-      'Thêm Google Places API key ở Cài đặt → API Keys để tìm địa điểm thật, hoặc dùng thử demo.';
-
-  @override
   String get searchChooseMatch => 'Chọn địa điểm';
 
   @override
@@ -105,7 +101,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get settingsApiKeysDesc =>
-      'Địa điểm, thời tiết, tìm kiếm — cần để lấy dữ liệu thật';
+      'Thời tiết, tìm kiếm — địa điểm/geocoding không cần key';
 
   @override
   String get settingsAiAssistant => 'Trợ lý AI';
@@ -162,11 +158,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get apiKeysTitle => 'API Keys';
 
   @override
-  String get placesApiKeyLabel => 'Google Places / Geocoding API key';
-
-  @override
-  String get placesApiKeyDesc =>
-      'Cần để tìm kiếm, xem địa điểm gần và sân bay gần nhất.';
+  String get placesNoKeyNote =>
+      'Tìm kiếm, địa điểm gần và sân bay gần nhất dùng OpenStreetMap (Nominatim + Overpass) — miễn phí, không cần API key.';
 
   @override
   String get weatherApiKeyLabel => 'OpenWeatherMap API key';

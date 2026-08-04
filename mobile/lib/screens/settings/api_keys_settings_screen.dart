@@ -6,10 +6,11 @@ import '../../state/app_settings.dart';
 import '../../theme/colors.dart';
 import '../../widgets/common/settings_scaffold.dart';
 
-/// Every provider is BYOK now — there's no backend to hold a shared key
-/// (CLAUDE.md "Quyết định đã chốt 2026-08-04 (đợt 2)"). Keys are written
-/// straight to flutter_secure_storage and never leave the device except in
-/// a request to the provider that issued that key.
+/// Weather and Search are BYOK — there's no backend to hold a shared key
+/// (CLAUDE.md "Quyết định đã chốt 2026-08-04 (đợt 2)"). Places/Geocoding
+/// isn't here anymore: it runs on OpenStreetMap and needs no key at all
+/// (đợt 3). Keys are written straight to flutter_secure_storage and never
+/// leave the device except in a request to the provider that issued them.
 class ApiKeysSettingsScreen extends StatefulWidget {
   const ApiKeysSettingsScreen({super.key});
 
@@ -18,7 +19,6 @@ class ApiKeysSettingsScreen extends StatefulWidget {
 }
 
 class _ApiKeysSettingsScreenState extends State<ApiKeysSettingsScreen> {
-  final _placesController = TextEditingController();
   final _weatherController = TextEditingController();
   final _searchController = TextEditingController();
   bool _loaded = false;
@@ -31,9 +31,8 @@ class _ApiKeysSettingsScreenState extends State<ApiKeysSettingsScreen> {
 
   Future<void> _load() async {
     final appSettings = context.read<AppSettings>();
-    String? places, weather, search;
+    String? weather, search;
     try {
-      places = await appSettings.getPlacesApiKey();
       weather = await appSettings.getWeatherApiKey();
       search = await appSettings.getSearchApiKey();
     } catch (_) {
@@ -41,7 +40,6 @@ class _ApiKeysSettingsScreenState extends State<ApiKeysSettingsScreen> {
     }
     if (!mounted) return;
     setState(() {
-      _placesController.text = places ?? '';
       _weatherController.text = weather ?? '';
       _searchController.text = search ?? '';
       _loaded = true;
@@ -50,7 +48,6 @@ class _ApiKeysSettingsScreenState extends State<ApiKeysSettingsScreen> {
 
   @override
   void dispose() {
-    _placesController.dispose();
     _weatherController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -72,12 +69,17 @@ class _ApiKeysSettingsScreenState extends State<ApiKeysSettingsScreen> {
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
-          _ApiKeyField(
-            label: l10n.placesApiKeyLabel,
-            description: l10n.placesApiKeyDesc,
-            controller: _placesController,
-            enabled: _loaded,
-            onSave: (v) => _save(appSettings.setPlacesApiKey, v),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.cardBg1,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.borderColor),
+              ),
+              child: Text(l10n.placesNoKeyNote, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+            ),
           ),
           _ApiKeyField(
             label: l10n.weatherApiKeyLabel,

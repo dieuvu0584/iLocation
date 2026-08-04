@@ -9,7 +9,6 @@
   "searchTryDemo": "Try a demo (Da Lat)",
   "searchNoResults": "No matches found. Try a different search.",
   "searchError": "Something went wrong. Check your connection or try the demo.",
-  "searchNoPlacesKey": "Add a Google Places API key in Settings → API Keys to search for real places, or try the demo instead.",
   "searchChooseMatch": "Choose a match",
 
   "graphBack": "Back",
@@ -38,7 +37,7 @@
   "settingsLanguageUnits": "Language & Units",
   "settingsLanguageUnitsDesc": "UI language, content language, distance/temperature units",
   "settingsApiKeys": "API Keys",
-  "settingsApiKeysDesc": "Places, weather, and search — required to fetch real data",
+  "settingsApiKeysDesc": "Weather and search — places/geocoding needs no key",
   "settingsAiAssistant": "AI Assistant",
   "settingsAiAssistantDesc": "Your own LLM API key, detail level, sources",
   "settingsDataPrivacy": "Data & Privacy",
@@ -58,8 +57,7 @@
   "systemDefault": "System default",
 
   "apiKeysTitle": "API Keys",
-  "placesApiKeyLabel": "Google Places / Geocoding API key",
-  "placesApiKeyDesc": "Needed for search, nearby places, and the nearest airport.",
+  "placesNoKeyNote": "Search, nearby places, and the nearest airport run on OpenStreetMap (Nominatim + Overpass) — free, no API key needed.",
   "weatherApiKeyLabel": "OpenWeatherMap API key",
   "weatherApiKeyDesc": "Needed for the current weather.",
   "searchApiKeyLabel": "Tavily search API key (optional)",

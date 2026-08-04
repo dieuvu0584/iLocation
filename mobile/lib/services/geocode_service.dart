@@ -12,51 +12,51 @@ class GeocodeException implements Exception {
   String toString() => message;
 }
 
-/// Google Geocoding API, called directly from the client (BYOK — see
-/// CLAUDE.md "Quyết định đã chốt 2026-08-04 (đợt 2)"). Structured API only,
-/// never touches the LLM.
+/// OpenStreetMap Nominatim — free, no API key required (swapped from Google
+/// Geocoding per project owner request; see CLAUDE.md "Quyết định đã chốt
+/// 2026-08-04 (đợt 3)"). Structured API only, never touches the LLM.
+///
+/// Usage policy (https://operations.osmfoundation.org/policies/nominatim/)
+/// caps a single app at ~1 request/second and requires an identifying
+/// User-Agent — both satisfied here (search only runs on submit, not per
+/// keystroke). This is a shared public instance, so it can be slower or
+/// briefly unavailable under load; that's the tradeoff for not needing a key.
 class GeocodeService {
-  static const _url = 'https://maps.googleapis.com/maps/api/geocode/json';
+  static const _url = 'https://nominatim.openstreetmap.org/search';
+  static const _userAgent = 'iLocationExplorerApp/1.0 (personal travel info app; BYOK, no server)';
 
-  Future<List<LocationSearchCandidate>> searchCandidates(String query, String apiKey) async {
-    final uri = Uri.parse(_url).replace(queryParameters: {'address': query, 'key': apiKey});
-    final resp = await http.get(uri);
+  Future<List<LocationSearchCandidate>> searchCandidates(String query) async {
+    final uri = Uri.parse(_url).replace(queryParameters: {
+      'q': query,
+      'format': 'jsonv2',
+      'addressdetails': '1',
+      'limit': '8',
+    });
+    final resp = await http.get(uri, headers: {'User-Agent': _userAgent});
     if (resp.statusCode != 200) {
       throw GeocodeException('Geocoding request failed (${resp.statusCode})');
     }
-    final data = jsonDecode(resp.body) as Map<String, dynamic>;
-    final status = data['status'] as String?;
-    if (status != 'OK' && status != 'ZERO_RESULTS') {
-      throw GeocodeException('Geocoding failed: $status ${data['error_message'] ?? ''}');
-    }
+    final results = jsonDecode(resp.body) as List<dynamic>;
 
-    final results = (data['results'] as List<dynamic>? ?? []);
     return results.map((r) {
       final result = r as Map<String, dynamic>;
-      final location = (result['geometry'] as Map<String, dynamic>)['location'] as Map<String, dynamic>;
-      final lat = (location['lat'] as num).toDouble();
-      final lng = (location['lng'] as num).toDouble();
-      final addressComponents = (result['address_components'] as List<dynamic>? ?? [])
-          .map((e) => e as Map<String, dynamic>)
-          .toList();
-      final name = addressComponents.isNotEmpty ? addressComponents.first['long_name'] as String : query;
+      final lat = double.parse(result['lat'] as String);
+      final lng = double.parse(result['lon'] as String);
+      final address = result['address'] as Map<String, dynamic>? ?? {};
+      final displayName = result['display_name'] as String? ?? query;
+      final name = (result['name'] as String?)?.isNotEmpty == true
+          ? result['name'] as String
+          : displayName.split(',').first.trim();
+      final countryCode = (address['country_code'] as String?)?.toUpperCase();
 
       return LocationSearchCandidate(
         locationId: CacheService.normalizeLocationId(lat, lng),
         name: name,
-        formattedAddress: result['formatted_address'] as String? ?? query,
+        formattedAddress: displayName,
         lat: lat,
         lng: lng,
-        countryCode: _countryCode(addressComponents),
+        countryCode: countryCode,
       );
     }).toList();
-  }
-
-  String? _countryCode(List<Map<String, dynamic>> components) {
-    for (final comp in components) {
-      final types = (comp['types'] as List<dynamic>? ?? []).cast<String>();
-      if (types.contains('country')) return comp['short_name'] as String?;
-    }
-    return null;
   }
 }

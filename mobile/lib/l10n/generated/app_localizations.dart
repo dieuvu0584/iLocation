@@ -140,12 +140,6 @@ abstract class AppLocalizations {
   /// **'Something went wrong. Check your connection or try the demo.'**
   String get searchError;
 
-  /// No description provided for @searchNoPlacesKey.
-  ///
-  /// In en, this message translates to:
-  /// **'Add a Google Places API key in Settings → API Keys to search for real places, or try the demo instead.'**
-  String get searchNoPlacesKey;
-
   /// No description provided for @searchChooseMatch.
   ///
   /// In en, this message translates to:
@@ -281,7 +275,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsApiKeysDesc.
   ///
   /// In en, this message translates to:
-  /// **'Places, weather, and search — required to fetch real data'**
+  /// **'Weather and search — places/geocoding needs no key'**
   String get settingsApiKeysDesc;
 
   /// No description provided for @settingsAiAssistant.
@@ -386,17 +380,11 @@ abstract class AppLocalizations {
   /// **'API Keys'**
   String get apiKeysTitle;
 
-  /// No description provided for @placesApiKeyLabel.
+  /// No description provided for @placesNoKeyNote.
   ///
   /// In en, this message translates to:
-  /// **'Google Places / Geocoding API key'**
-  String get placesApiKeyLabel;
-
-  /// No description provided for @placesApiKeyDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Needed for search, nearby places, and the nearest airport.'**
-  String get placesApiKeyDesc;
+  /// **'Search, nearby places, and the nearest airport run on OpenStreetMap (Nominatim + Overpass) — free, no API key needed.'**
+  String get placesNoKeyNote;
 
   /// No description provided for @weatherApiKeyLabel.
   ///

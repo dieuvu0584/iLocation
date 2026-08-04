@@ -31,10 +31,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Something went wrong. Check your connection or try the demo.';
 
   @override
-  String get searchNoPlacesKey =>
-      'Add a Google Places API key in Settings → API Keys to search for real places, or try the demo instead.';
-
-  @override
   String get searchChooseMatch => 'Choose a match';
 
   @override
@@ -105,7 +101,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsApiKeysDesc =>
-      'Places, weather, and search — required to fetch real data';
+      'Weather and search — places/geocoding needs no key';
 
   @override
   String get settingsAiAssistant => 'AI Assistant';
@@ -162,11 +158,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get apiKeysTitle => 'API Keys';
 
   @override
-  String get placesApiKeyLabel => 'Google Places / Geocoding API key';
-
-  @override
-  String get placesApiKeyDesc =>
-      'Needed for search, nearby places, and the nearest airport.';
+  String get placesNoKeyNote =>
+      'Search, nearby places, and the nearest airport run on OpenStreetMap (Nominatim + Overpass) — free, no API key needed.';
 
   @override
   String get weatherApiKeyLabel => 'OpenWeatherMap API key';

@@ -11,15 +11,43 @@ App mobile Flutter cho phép tra cứu thông tin tổng hợp về 1 địa đi
 thống.
 
 **Kiến trúc: hoàn toàn client-side (đã đổi hướng 2026-08-04, xem bên dưới).**
-Không có backend server. App gọi thẳng các provider (Google Places/
-Geocoding, OpenWeatherMap, Tavily, LLM) từ Flutter bằng API key người dùng
-tự nhập (BYOK), cache bằng SQLite cục bộ trên máy (`sqflite`).
+Không có backend server. App gọi thẳng các provider từ Flutter — OpenStreetMap
+(Nominatim + Overpass, **miễn phí, không cần API key**) cho Places/Geocoding,
+OpenWeatherMap cho Weather, Tavily cho Search (tuỳ chọn), và 1 LLM provider
+người dùng tự chọn — bằng API key người dùng tự nhập cho các provider cần
+key (BYOK), cache bằng SQLite cục bộ trên máy (`sqflite`).
 
 Đây là side project cá nhân — ưu tiên chi phí vận hành thấp (lý tưởng: $0,
 vì không có server nào phải trả tiền vận hành), và chất lượng
 production-ready dù là 1 người làm.
 
 ## Quyết định đã chốt
+
+### 2026-08-04 (đợt 3) — Đổi Places/Geocoding sang OpenStreetMap, bỏ Google
+
+Chủ dự án hỏi có cách nào miễn phí hơn cho Places/Geocoding không, không
+nhất thiết phải dùng Google (Google Places/Geocoding yêu cầu gắn thẻ thanh
+toán dù có $200/tháng miễn phí). Đã đổi sang **OpenStreetMap**:
+
+- **Geocoding/search**: Nominatim (`nominatim.openstreetmap.org`) — miễn
+  phí, KHÔNG cần API key. Chỉ cần header `User-Agent` định danh app và giới
+  hạn ~1 request/giây (app chỉ gọi khi user bấm search, không phải mỗi lần
+  gõ phím, nên tự nhiên đã tuân thủ). Xem `mobile/lib/services/geocode_service.dart`.
+- **Nearby places / airport / hospital**: Overpass API
+  (`overpass-api.de/api/interpreter`) — miễn phí, KHÔNG cần API key. Dùng
+  Overpass QL query theo bán kính (`around:RADIUS,LAT,LNG`), rồi tự sort
+  theo khoảng cách (Haversine) trong Dart vì Overpass không tự sort. Xem
+  `mobile/lib/services/places_service.dart`.
+- **Đánh đổi chấp nhận được**: đây là instance công cộng dùng chung, có thể
+  chậm hoặc quá tải hơn Google trong giờ cao điểm, và dữ liệu OSM đôi khi ít
+  đầy đủ hơn ở thị trấn nhỏ — bù lại không cần thẻ thanh toán, không giới
+  hạn quota trả phí, đúng tinh thần "chi phí vận hành $0" của dự án.
+- **`RequestSettings.placesApiKey` đã bị xoá hoàn toàn** — không còn field
+  này nữa (không phải optional, mà KHÔNG TỒN TẠI, vì Places/Geocoding không
+  bao giờ cần key). Đừng thêm lại field này trừ khi đổi provider lần nữa.
+- Setting "API Keys" trong app giờ chỉ còn Weather (OpenWeatherMap) + Search
+  (Tavily) — Places không còn xuất hiện ở màn hình đó, thay bằng 1 ghi chú
+  giải thích ngắn.
 
 ### 2026-08-04 (đợt 2) — Bỏ backend, chuyển hẳn sang client-side
 
@@ -82,7 +110,10 @@ lại để biết lý do ban đầu, đừng làm theo #4 nữa:
 - **Mobile**: Flutter (Dart) — **đây là toàn bộ app, không có backend**.
 - **DB/cache trên thiết bị**: `sqflite` (SQLite local, không phải server).
 - **Secure storage client**: `flutter_secure_storage` — dùng cho MỌI API
-  key BYOK (LLM, Places/Geocoding, Weather, Search), không dùng cho gì khác.
+  key BYOK còn lại (LLM, Weather, Search), không dùng cho gì khác.
+- **Places/Geocoding**: OpenStreetMap (Nominatim + Overpass API) — miễn phí,
+  KHÔNG cần API key (đã chốt đợt 3, đổi từ Google). Đừng đổi lại Google
+  hoặc thêm key requirement cho mục này mà không hỏi lại.
 - **LLM**: người dùng tự chọn provider (Gemini / Groq / OpenRouter /
   OpenAI) + tự nhập key — không có provider/key mặc định của app.
 - **Web search**: Tavily, BYOK, tuỳ chọn (không bắt buộc — thiếu key thì
@@ -104,7 +135,7 @@ lại để biết lý do ban đầu, đừng làm theo #4 nữa:
       settings/
         language_settings_screen.dart
         llm_settings_screen.dart      # provider + key LLM, detail level, show sources
-        api_keys_settings_screen.dart   # key Places/Geocoding, Weather, Search (Tavily)
+        api_keys_settings_screen.dart   # key Weather, Search (Tavily) — Places/Geocoding không cần key
         privacy_settings_screen.dart
         settings_home_screen.dart
       search/               # search_screen.dart — đơn giản, chức năng
@@ -116,15 +147,15 @@ lại để biết lý do ban đầu, đừng làm theo #4 nữa:
       app_database.dart          # sqflite: mở DB, tạo bảng locations/cache_items
     /services
       cache_service.dart           # Dart port của backend/app/services/cache.py — TTL theo item
-      geocode_service.dart           # Google Geocoding, gọi thẳng (BYOK)
-      places_service.dart              # Google Places (nearby/airport/hospital), gọi thẳng (BYOK)
+      geocode_service.dart           # OpenStreetMap Nominatim, gọi thẳng, KHÔNG cần key
+      places_service.dart              # OpenStreetMap Overpass (nearby/airport/hospital), KHÔNG cần key
       weather_service.dart               # OpenWeatherMap, gọi thẳng (BYOK)
       web_search_service.dart              # Tavily, gọi thẳng (BYOK, tuỳ chọn)
       llm_service.dart                       # Port của backend/app/services/llm.py — prompt + provider routing
       timezone_service.dart                    # offline, tính gần đúng từ kinh độ
       emergency_service.dart                     # tra bảng tĩnh, bundle JSON asset
       orchestrator_service.dart                    # Dart port của backend/app/services/orchestrator.py
-      secure_storage.dart                            # MỌI API key BYOK (LLM + Places + Weather + Search)
+      secure_storage.dart                            # API key BYOK còn lại (LLM + Weather + Search)
       settings_service.dart                            # SharedPreferences — setting không nhạy cảm
       history_service.dart
     /state
@@ -157,11 +188,11 @@ lại để biết lý do ban đầu, đừng làm theo #4 nữa:
    search/LLM. TTL khác nhau theo loại dữ liệu (`cache_service.dart`
    `ttlByItem`) — không dùng 1 TTL chung cho tất cả.
 
-4. **Mọi provider đều là BYOK, không có rate limit của app.** Không còn
-   `device_id`/free-tier — mỗi provider (LLM, Places, Weather, Search) chỉ
-   hoạt động khi người dùng tự nhập key tương ứng trong Settings. Thiếu key
-   nào thì các mục phụ thuộc key đó hiển thị trạng thái "cần thêm API key"
-   thay vì lỗi khó hiểu.
+4. **Mọi provider cần key đều là BYOK, không có rate limit của app.** Không
+   còn `device_id`/free-tier — LLM/Weather/Search chỉ hoạt động khi người
+   dùng tự nhập key tương ứng trong Settings; Places/Geocoding (OpenStreetMap)
+   không cần key nên luôn hoạt động. Thiếu key nào thì các mục phụ thuộc key
+   đó hiển thị trạng thái "cần thêm API key" thay vì lỗi khó hiểu.
 
 5. **API key KHÔNG BAO GIỜ rời khỏi thiết bị ngoài lúc gọi thẳng provider.**
    Lưu ở `flutter_secure_storage`, không log, không gửi đi đâu khác ngoài
@@ -202,20 +233,22 @@ const borderColor = Color(0xFF2A4356);
       còn được mobile app dùng (xem quyết định đợt 2).
 - [x] Mobile: node-graph widget (tier 1 + tier 2 + detail panel), mock data.
 - [x] Mobile: chuyển sang kiến trúc client-only — cache `sqflite`, gọi
-      thẳng Places/Weather/Search/LLM bằng BYOK key, port toàn bộ logic
-      cache TTL + prompt building + orchestration từ backend Python sang
-      Dart.
-- [x] Settings: API Keys (Places/Weather/Search), LLM (provider + key,
-      không còn free tier), Privacy (cache local, không còn "backend server
-      URL").
+      thẳng Places/Weather/Search/LLM, port toàn bộ logic cache TTL +
+      prompt building + orchestration từ backend Python sang Dart.
+- [x] Mobile: đổi Places/Geocoding từ Google sang OpenStreetMap (Nominatim +
+      Overpass) — miễn phí, không cần key (đợt 3).
+- [x] Settings: API Keys (Weather/Search), LLM (provider + key, không còn
+      free tier), Privacy (cache local, không còn "backend server URL").
 - [x] Cài Flutter SDK (3.44.8 stable) trong môi trường build, chạy
       `flutter create .`, `flutter analyze` (0 issues), `flutter test`,
       `flutter build linux`/`flutter build web`/`flutter build apk` (qua
       GitHub Actions CI, môi trường build sandbox không có Android SDK khả
       dụng — xem `.github/workflows/build-apk.yml`).
-- [ ] Test trên thiết bị thật với API key thật (Google Places/Geocoding,
-      OpenWeatherMap, Tavily, và 1 provider LLM) — môi trường build chưa có
-      key nào để test end-to-end.
+- [ ] Test trên thiết bị thật với API key thật (OpenWeatherMap, Tavily, và
+      1 provider LLM) — môi trường build chưa có key nào để test end-to-end.
+      Nominatim/Overpass đã xác nhận code đúng nhưng không test sống được từ
+      sandbox build (network policy của sandbox chặn cả 2 host này, không
+      liên quan tới điện thoại thật của user).
 - [ ] Build/test iOS — môi trường build không có Xcode.
 - [ ] Mở rộng bảng số khẩn cấp ngoài ~40 quốc gia hiện có.
 

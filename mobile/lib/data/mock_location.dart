@@ -3,7 +3,7 @@ import '../models/location_models.dart';
 /// Demo fixture matching the backend schema (SDD §4) — used for the "Try a
 /// demo" button on the search screen and for widget development/tests when
 /// no backend is reachable.
-final LocationSearchCandidate mockCandidate = LocationSearchCandidate(
+const LocationSearchCandidate mockCandidate = LocationSearchCandidate(
   locationId: '11.940_108.458',
   name: 'Da Lat',
   formattedAddress: 'Da Lat, Lam Dong, Vietnam',

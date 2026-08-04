@@ -78,23 +78,23 @@ class _LlmSettingsScreenState extends State<LlmSettingsScreen> {
             SettingsSectionLabel(l10n.providerMode),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  RadioListTile<ProviderMode>(
-                    value: ProviderMode.free,
-                    groupValue: appSettings.providerMode,
-                    onChanged: (v) => appSettings.setProviderMode(v!),
-                    title: Text(l10n.providerFree),
-                    activeColor: AppColors.accentAmber,
-                  ),
-                  RadioListTile<ProviderMode>(
-                    value: ProviderMode.byok,
-                    groupValue: appSettings.providerMode,
-                    onChanged: (v) => appSettings.setProviderMode(v!),
-                    title: Text(l10n.providerByok),
-                    activeColor: AppColors.accentAmber,
-                  ),
-                ],
+              child: RadioGroup<ProviderMode>(
+                groupValue: appSettings.providerMode,
+                onChanged: (v) => appSettings.setProviderMode(v!),
+                child: Column(
+                  children: [
+                    RadioListTile<ProviderMode>(
+                      value: ProviderMode.free,
+                      title: Text(l10n.providerFree),
+                      activeColor: AppColors.accentAmber,
+                    ),
+                    RadioListTile<ProviderMode>(
+                      value: ProviderMode.byok,
+                      title: Text(l10n.providerByok),
+                      activeColor: AppColors.accentAmber,
+                    ),
+                  ],
+                ),
               ),
             ),
             if (appSettings.providerMode == ProviderMode.free) _FreeTierUsage(usage: _usage, error: _usageError, l10n: l10n),

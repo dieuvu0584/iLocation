@@ -173,9 +173,15 @@ const borderColor = Color(0xFF2A4356);
 - [x] Mobile ↔ backend nối thật qua `ApiClient` (chưa test trên thiết bị/emulator thật).
 - [x] Settings ngôn ngữ/đơn vị + `flutter_localizations` setup (ARB + hand-authored generated classes, xem `mobile/README.md`).
 - [x] Search/History UI — đã xác nhận với chủ dự án, triển khai bản đơn giản.
-- [ ] Điền API keys thật (Google Places/Geocoding, OpenWeatherMap, Tavily, Gemini) và test end-to-end.
-- [ ] `flutter create .` trong `mobile/` để sinh platform folders (môi trường build không có Flutter SDK).
-- [ ] Test trên thiết bị/emulator thật — chưa từng chạy `flutter run` trong môi trường này.
+- [x] Cài Flutter SDK (3.44.8 stable) trong môi trường build, chạy
+      `flutter create .`, `flutter analyze` (0 issues), `flutter test`,
+      `flutter build linux`/`flutter build web` — tất cả pass. Đã chạy thử
+      app Linux build (qua Xvfb) nối với backend thật, xác nhận search
+      screen, node-graph (tier 1/2 + detail panel + refresh), và LLM
+      settings (fetch usage thật từ backend) hoạt động đúng.
+- [ ] Điền API keys thật (Google Places/Geocoding, OpenWeatherMap, Tavily, Gemini) và test end-to-end với dữ liệu thật.
+- [ ] Build/test Android và iOS — môi trường build này không có Android SDK/Xcode.
+- [ ] Test trên thiết bị/emulator di động thật (chỉ mới test Linux desktop build).
 - [ ] Mở rộng bảng số khẩn cấp ngoài ~40 quốc gia hiện có.
 
 ## Việc KHÔNG được tự quyết định (còn lại)

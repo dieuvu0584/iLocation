@@ -60,9 +60,11 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
 
   Future<void> _clearCache() async {
     final l10n = AppLocalizations.of(context)!;
+    final apiClient = context.read<ApiClient>();
     if (!await _confirm(l10n.clearCacheConfirm)) return;
+    if (!mounted) return;
     try {
-      await context.read<ApiClient>().clearCache();
+      await apiClient.clearCache();
       await _loadCacheStats();
     } catch (e) {
       if (!mounted) return;
@@ -72,8 +74,10 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
 
   Future<void> _clearHistory() async {
     final l10n = AppLocalizations.of(context)!;
+    final historyService = context.read<HistoryService>();
     if (!await _confirm(l10n.clearHistoryConfirm)) return;
-    await context.read<HistoryService>().clear();
+    if (!mounted) return;
+    await historyService.clear();
     _loadHistoryCount();
   }
 

@@ -248,6 +248,16 @@ class AppLocalizationsVi extends AppLocalizations {
   String get fontSize => 'Cỡ chữ';
 
   @override
+  String get serverUrl => 'Địa chỉ máy chủ backend';
+
+  @override
+  String get serverUrlDesc =>
+      'Bắt buộc khi chạy trên thiết bị thật — địa chỉ mặc định chỉ dùng được trên emulator/simulator. Nhập địa chỉ backend của bạn, ví dụ http://192.168.1.42:8000';
+
+  @override
+  String get serverUrlHint => 'http://192.168.1.42:8000';
+
+  @override
   String get historyTitle => 'Lịch sử';
 
   @override

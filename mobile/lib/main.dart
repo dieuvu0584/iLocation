@@ -9,7 +9,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final appSettings = await AppSettings.create();
   final historyService = await HistoryService.create();
-  final apiClient = ApiClient();
+  final apiClient = ApiClient()..updateBaseUrl(appSettings.serverBaseUrl);
 
   runApp(LocationExplorerApp(
     appSettings: appSettings,

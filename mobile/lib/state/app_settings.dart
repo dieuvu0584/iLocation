@@ -119,6 +119,12 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
   }
 
+  String? get serverBaseUrl => _settings.serverBaseUrl;
+  Future<void> setServerBaseUrl(String? url) async {
+    await _settings.setServerBaseUrl(url);
+    notifyListeners();
+  }
+
   /// Builds the per-request settings payload sent to the backend with every
   /// location fetch (SDD §7.2). Reads the BYOK key from secure storage only
   /// at call time — it is never cached in memory beyond this object.

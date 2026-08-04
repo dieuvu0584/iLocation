@@ -88,6 +88,9 @@
   "reducedMotion": "Giảm chuyển động",
   "reducedMotionDesc": "Tắt hiệu ứng chuyển động nền trong node-graph",
   "fontSize": "Cỡ chữ",
+  "serverUrl": "Địa chỉ máy chủ backend",
+  "serverUrlDesc": "Bắt buộc khi chạy trên thiết bị thật — địa chỉ mặc định chỉ dùng được trên emulator/simulator. Nhập địa chỉ backend của bạn, ví dụ http://192.168.1.42:8000",
+  "serverUrlHint": "http://192.168.1.42:8000",
 
   "historyTitle": "Lịch sử",
   "historyEmpty": "Chưa có địa điểm nào được tra cứu.",

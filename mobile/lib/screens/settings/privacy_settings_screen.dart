@@ -19,12 +19,30 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
   Map<String, dynamic>? _cacheStats;
   String? _cacheError;
   int _historyCount = 0;
+  late final TextEditingController _serverUrlController;
 
   @override
   void initState() {
     super.initState();
+    _serverUrlController = TextEditingController(text: context.read<AppSettings>().serverBaseUrl ?? '');
     _loadCacheStats();
     _loadHistoryCount();
+  }
+
+  @override
+  void dispose() {
+    _serverUrlController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveServerUrl() async {
+    final url = _serverUrlController.text.trim();
+    await context.read<AppSettings>().setServerBaseUrl(url.isEmpty ? null : url);
+    if (!mounted) return;
+    context.read<ApiClient>().updateBaseUrl(url.isEmpty ? null : url);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${AppLocalizations.of(context)!.save}: ${context.read<ApiClient>().baseUrl}')),
+    );
   }
 
   Future<void> _loadCacheStats() async {
@@ -97,6 +115,27 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
+          SettingsSectionLabel(l10n.serverUrl),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
+            child: Text(l10n.serverUrlDesc, style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: TextField(
+              controller: _serverUrlController,
+              keyboardType: TextInputType.url,
+              decoration: InputDecoration(
+                hintText: l10n.serverUrlHint,
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.save_outlined, color: AppColors.accentAmber),
+                  onPressed: _saveServerUrl,
+                ),
+              ),
+              onSubmitted: (_) => _saveServerUrl(),
+            ),
+          ),
+          const Divider(height: 24),
           ListTile(
             title: Text(l10n.cacheSize),
             subtitle: Text(

@@ -21,6 +21,7 @@ class SettingsService {
   static const _kGpsEnabled = 'gps_enabled';
   static const _kReducedMotion = 'reduced_motion';
   static const _kFontScale = 'font_scale';
+  static const _kServerBaseUrl = 'server_base_url'; // null/absent = platform default
 
   final SharedPreferences _prefs;
 
@@ -96,4 +97,15 @@ class SettingsService {
 
   double get fontScale => _prefs.getDouble(_kFontScale) ?? 1.0;
   Future<void> setFontScale(double value) => _prefs.setDouble(_kFontScale, value);
+
+  /// Backend URL override — required on a real device, where the built-in
+  /// emulator/simulator defaults (10.0.2.2, localhost) don't mean anything.
+  String? get serverBaseUrl => _prefs.getString(_kServerBaseUrl);
+  Future<void> setServerBaseUrl(String? url) async {
+    if (url == null || url.trim().isEmpty) {
+      await _prefs.remove(_kServerBaseUrl);
+    } else {
+      await _prefs.setString(_kServerBaseUrl, url.trim());
+    }
+  }
 }

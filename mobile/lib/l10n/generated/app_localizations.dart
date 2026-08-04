@@ -542,6 +542,24 @@ abstract class AppLocalizations {
   /// **'Font size'**
   String get fontSize;
 
+  /// No description provided for @serverUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Backend server URL'**
+  String get serverUrl;
+
+  /// No description provided for @serverUrlDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Required on a real device — the built-in default only works on an emulator/simulator. Point this at your backend, e.g. http://192.168.1.42:8000'**
+  String get serverUrlDesc;
+
+  /// No description provided for @serverUrlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'http://192.168.1.42:8000'**
+  String get serverUrlHint;
+
   /// No description provided for @historyTitle.
   ///
   /// In en, this message translates to:

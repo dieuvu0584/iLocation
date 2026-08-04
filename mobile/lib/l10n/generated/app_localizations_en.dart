@@ -247,6 +247,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fontSize => 'Font size';
 
   @override
+  String get serverUrl => 'Backend server URL';
+
+  @override
+  String get serverUrlDesc =>
+      'Required on a real device — the built-in default only works on an emulator/simulator. Point this at your backend, e.g. http://192.168.1.42:8000';
+
+  @override
+  String get serverUrlHint => 'http://192.168.1.42:8000';
+
+  @override
   String get historyTitle => 'History';
 
   @override

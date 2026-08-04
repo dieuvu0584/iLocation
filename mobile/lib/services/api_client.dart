@@ -17,17 +17,29 @@ class ApiException implements Exception {
 }
 
 /// Talks to the FastAPI backend (backend/app/api/routes). Base URL can be
-/// overridden at build time with `--dart-define=API_BASE_URL=...`; the
-/// default targets the Android emulator's host-loopback alias.
+/// overridden at build time with `--dart-define=API_BASE_URL=...`, or at
+/// runtime via [updateBaseUrl] (wired to the Privacy settings screen) —
+/// the platform default below only makes sense on an emulator/simulator,
+/// never on a real device, which has no way to reach a `10.0.2.2` or
+/// `localhost` that means "my host machine".
 class ApiClient {
   static const _defaultBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: '');
 
-  final String baseUrl;
+  String baseUrl;
   final http.Client _client;
 
   ApiClient({String? baseUrl, http.Client? client})
       : baseUrl = baseUrl ?? (_defaultBaseUrl.isNotEmpty ? _defaultBaseUrl : _platformDefaultBaseUrl()),
         _client = client ?? http.Client();
+
+  /// Called at startup (with the saved setting) and whenever the user edits
+  /// the server URL in Privacy settings. Passing null/empty resets to the
+  /// build-time/platform default.
+  void updateBaseUrl(String? url) {
+    baseUrl = (url != null && url.trim().isNotEmpty)
+        ? url.trim()
+        : (_defaultBaseUrl.isNotEmpty ? _defaultBaseUrl : _platformDefaultBaseUrl());
+  }
 
   static String _platformDefaultBaseUrl() {
     if (kIsWeb) return 'http://localhost:8000';

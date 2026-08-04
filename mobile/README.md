@@ -40,13 +40,24 @@ flutter run
 
 ## Pointing at the backend
 
-`ApiClient` defaults to `http://10.0.2.2:8000` on Android (the emulator's
-alias for the host machine's `localhost`) and `http://localhost:8000`
-everywhere else. Override at build/run time if needed:
+`ApiClient` defaults to `http://10.0.2.2:8000` on Android and
+`http://localhost:8000` everywhere else — **these only work on an
+emulator/simulator or a desktop build**, never on a real device, which has
+no way to resolve "my host machine" from either address.
 
-```bash
-flutter run --dart-define=API_BASE_URL=http://192.168.1.50:8000
-```
+Two ways to override it:
+
+- **At build time**, e.g. for a release APK you're about to distribute:
+  ```bash
+  flutter build apk --dart-define=API_BASE_URL=http://192.168.1.50:8000
+  ```
+- **At runtime, in the app itself** — open Settings → Data & Privacy →
+  "Backend server URL" and enter `http://<your-computer's-LAN-IP>:8000`.
+  This is the one that matters for testing an already-installed APK on a
+  real phone: the phone and the machine running the backend need to be on
+  the same WiFi network, and the backend needs to be started with
+  `--host 0.0.0.0` (see `backend/README.md`) so it accepts connections from
+  something other than itself.
 
 Start the backend first (see `../backend/README.md`) — without it, use the
 "Try a demo" button on the search screen, which loads fixture data from

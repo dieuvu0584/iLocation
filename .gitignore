@@ -1,0 +1,16 @@
+# Backend
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.pytest_cache/
+backend/data/cache.db
+backend/data/cache.db-*
+backend/.env
+
+# Mobile (also has its own .gitignore for build/platform artifacts)
+mobile/.dart_tool/
+mobile/build/
+
+# OS/editor
+.DS_Store
+*.swp

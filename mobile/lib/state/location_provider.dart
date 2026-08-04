@@ -2,24 +2,25 @@ import 'package:flutter/foundation.dart';
 
 import '../data/mock_location.dart';
 import '../models/location_models.dart';
-import '../services/api_client.dart';
 import '../services/history_service.dart';
+import '../services/orchestrator_service.dart';
 import 'app_settings.dart';
 
 enum LocationLoadStatus { idle, loading, loaded, error }
 
 /// Drives the node-graph screen: holds the currently-loaded LocationResponse
-/// and mediates fetch/refresh calls through the API client.
+/// and mediates fetch/refresh calls through the on-device orchestrator (no
+/// backend — CLAUDE.md "Quyết định đã chốt 2026-08-04 (đợt 2)").
 class LocationProvider extends ChangeNotifier {
-  final ApiClient _apiClient;
+  final OrchestratorService _orchestrator;
   final HistoryService _historyService;
   final AppSettings _appSettings;
 
   LocationProvider({
-    required ApiClient apiClient,
+    required OrchestratorService orchestrator,
     required HistoryService historyService,
     required AppSettings appSettings,
-  })  : _apiClient = apiClient,
+  })  : _orchestrator = orchestrator,
         _historyService = historyService,
         _appSettings = appSettings;
 
@@ -32,6 +33,8 @@ class LocationProvider extends ChangeNotifier {
   /// show a per-node spinner instead of a full-screen loading state.
   final Set<String> refreshingItemIds = {};
 
+  static final Set<String> _allItemIds = {for (final ids in kChildIdsByGroup.values) ...ids};
+
   Future<void> load(LocationSearchCandidate newCandidate) async {
     candidate = newCandidate;
     status = LocationLoadStatus.loading;
@@ -39,12 +42,12 @@ class LocationProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final settings = await _appSettings.buildLlmRequestSettings();
-      response = await _apiClient.resolveLocation(newCandidate, settings);
+      final settings = await _appSettings.buildRequestSettings();
+      response = await _orchestrator.buildLocationResponse(newCandidate, settings);
       status = LocationLoadStatus.loaded;
       await _historyService.add(newCandidate);
     } catch (e) {
-      errorMessage = e is ApiException ? e.message : e.toString();
+      errorMessage = e.toString();
       status = LocationLoadStatus.error;
     }
     notifyListeners();
@@ -63,11 +66,11 @@ class LocationProvider extends ChangeNotifier {
     status = LocationLoadStatus.loading;
     notifyListeners();
     try {
-      final settings = await _appSettings.buildLlmRequestSettings();
-      response = await _apiClient.refreshLocation(candidate!, settings);
+      final settings = await _appSettings.buildRequestSettings();
+      response = await _orchestrator.buildLocationResponse(candidate!, settings, forceRefreshItems: _allItemIds);
       status = LocationLoadStatus.loaded;
     } catch (e) {
-      errorMessage = e is ApiException ? e.message : e.toString();
+      errorMessage = e.toString();
       status = LocationLoadStatus.error;
     }
     notifyListeners();
@@ -78,10 +81,11 @@ class LocationProvider extends ChangeNotifier {
     refreshingItemIds.add(itemId);
     notifyListeners();
     try {
-      final settings = await _appSettings.buildLlmRequestSettings();
-      response = await _apiClient.refreshLocation(candidate!, settings, itemId: itemId);
+      final settings = await _appSettings.buildRequestSettings();
+      await _orchestrator.refreshItem(candidate!, itemId, settings);
+      response = await _orchestrator.buildLocationResponse(candidate!, settings);
     } catch (e) {
-      errorMessage = e is ApiException ? e.message : e.toString();
+      errorMessage = e.toString();
     } finally {
       refreshingItemIds.remove(itemId);
       notifyListeners();

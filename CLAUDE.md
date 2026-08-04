@@ -8,30 +8,68 @@ khi code phần liên quan.
 
 App mobile Flutter cho phép tra cứu thông tin tổng hợp về 1 địa điểm bất kỳ
 (toàn cầu), hiển thị qua UI dạng node-graph 2 tầng thay vì list truyền
-thống. Backend FastAPI tổng hợp dữ liệu từ API structured (Places, Weather)
-và LLM (cho các mục dạng text tự do), có cache để giảm chi phí.
+thống.
 
-Đây là side project cá nhân — ưu tiên chi phí vận hành thấp, tự host, và
-chất lượng production-ready dù là 1 người làm.
+**Kiến trúc: hoàn toàn client-side (đã đổi hướng 2026-08-04, xem bên dưới).**
+Không có backend server. App gọi thẳng các provider (Google Places/
+Geocoding, OpenWeatherMap, Tavily, LLM) từ Flutter bằng API key người dùng
+tự nhập (BYOK), cache bằng SQLite cục bộ trên máy (`sqflite`).
 
-## Quyết định đã chốt (2026-08-04)
+Đây là side project cá nhân — ưu tiên chi phí vận hành thấp (lý tưởng: $0,
+vì không có server nào phải trả tiền vận hành), và chất lượng
+production-ready dù là 1 người làm.
 
-Lần triển khai đầu tiên (backend + mobile) đã xác nhận các điểm sau — vốn
-trước đó được đánh dấu "chưa chốt" trong SDD:
+## Quyết định đã chốt
+
+### 2026-08-04 (đợt 2) — Bỏ backend, chuyển hẳn sang client-side
+
+Sau khi build xong bản backend+mobile đầu tiên (xem đợt 1 bên dưới) và thử
+trên điện thoại thật, chủ dự án quyết định **bỏ hẳn backend FastAPI**, đổi
+sang kiến trúc client-only:
+
+- **Lý do**: đơn giản hoá vận hành — không cần tự host/deploy 1 server nào
+  cả, không cần lo server offline/mất kết nối giữa điện thoại và backend
+  (vấn đề gặp phải khi test trên máy thật: `10.0.2.2` chỉ hoạt động trên
+  Android emulator, không phải máy thật, và chạy backend trên máy tính cá
+  nhân đòi hỏi cùng mạng WiFi + mở `--host 0.0.0.0` — bất tiện cho việc
+  dùng hàng ngày).
+- **Điều này ĐẢO NGƯỢC quyết định "BYOK routing: qua backend" ở đợt 1** —
+  giờ LLM (và cả Places/Weather/Search) gọi thẳng từ Dart, không qua
+  backend nữa. Lý do ban đầu (tập trung prompt-building/JSON
+  schema/localization ở 1 chỗ) vẫn đúng về mặt kỹ trong lý thuyết, nhưng
+  chủ dự án ưu tiên "không cần vận hành server" hơn.
+- **Không còn khái niệm "free tier" (Gemini key của app).** Không có
+  backend nghĩa là không có nơi giữ app-owned key an toàn + rate-limit
+  theo thiết bị. Mọi provider (LLM, Places, Weather, Search) đều là BYOK —
+  người dùng tự nhập key trong Settings, lưu ở `flutter_secure_storage`.
+- **Timezone**: không dùng `timezonefinder` (Python-only) nữa. Tính gần
+  đúng từ kinh độ (`round(lng / 15)` giờ UTC offset), hoàn toàn offline,
+  không cần key, không có tên IANA chính xác (không tính DST) — đánh đổi
+  chấp nhận được cho 1 app client-only, có ghi chú rõ trong UI.
+- **`backend/` vẫn còn trong repo nhưng KHÔNG được app dùng nữa.** Giữ lại
+  vì code còn chạy được, có test, và có thể hữu ích sau này nếu đổi hướng
+  lần nữa (vd: muốn cache dùng chung nhiều thiết bị) — nhưng đừng động vào
+  nó khi sửa mobile app, và đừng giả định app gọi nó.
+- **`local db on phone`**: cache location theo `location_id` dùng `sqflite`
+  (SQLite trên thiết bị), schema tương đương `backend/app/db/schema.sql`
+  nhưng port sang Dart — xem `mobile/lib/db/app_database.dart` và
+  `mobile/lib/services/cache_service.dart`.
+
+### 2026-08-04 (đợt 1) — các quyết định của lần triển khai đầu tiên
+
+Một số điểm dưới đây (đặc biệt #4) đã bị đảo ngược ở đợt 2 phía trên — giữ
+lại để biết lý do ban đầu, đừng làm theo #4 nữa:
 
 1. **Web search provider: Tavily.** Chọn vì free tier hào phóng, tối ưu cho
-   use case LLM/RAG. Implement ở `backend/app/services/search.py`.
+   use case LLM/RAG. Giờ gọi thẳng từ `mobile/lib/services/web_search_service.dart`
+   (BYOK), không qua backend nữa.
 2. **UI Search/History: đơn giản, chức năng.** Không phải thiết kế đầy đủ
    như node-graph — text search + list gần đây, theo đúng theme màu/font
    chung. Xem `mobile/lib/screens/search/` và `mobile/lib/screens/history/`.
-3. **Timezone**: tính offline từ toạ độ bằng `timezonefinder` (Python),
-   KHÔNG gọi API ngoài, KHÔNG qua LLM — khớp với ghi chú SDD §4
-   "API/tĩnh theo toạ độ" mà lần đọc đầu tiên đã bỏ sót khi phân loại item.
-4. **BYOK routing: qua backend**, không gọi LLM trực tiếp từ Flutter client
-   (đây là 1 trong 2 hướng SDD/CLAUDE.md để ngỏ). Lý do: giữ prompt-building,
-   enforce JSON schema, và localization tập trung 1 chỗ thay vì lặp lại ở
-   Dart. Key BYOK chỉ tồn tại trong bộ nhớ của 1 request, không bao giờ ghi
-   xuống DB/log — xem docstring `backend/app/services/llm.py`.
+3. **Timezone**: ban đầu tính bằng `timezonefinder` (Python) ở backend —
+   đợt 2 đổi sang tính gần đúng từ kinh độ ngay trong Dart, xem trên.
+4. ~~**BYOK routing: qua backend**~~ — ĐÃ ĐẢO NGƯỢC ở đợt 2, xem trên. Gọi
+   thẳng từ Flutter client giờ là hướng chính thức.
 5. **Icon set: Material Icons**, không phải `lucide_icons`/`flutter_lucide`
    như SDD gợi ý — môi trường build đầu tiên không có Flutter SDK để xác
    minh version package nào thực sự resolve được trên pub.dev, nên dùng bộ
@@ -41,41 +79,23 @@ trước đó được đánh dấu "chưa chốt" trong SDD:
 
 ## Tech stack (bắt buộc tuân theo, không tự ý đổi)
 
-- **Mobile**: Flutter (Dart)
-- **Backend**: Python 3.11+ / FastAPI
-- **DB/cache**: SQLite
-- **Secure storage client**: `flutter_secure_storage` (chỉ dùng cho API
-  key BYOK, không dùng cho gì khác)
-- **LLM mặc định**: Google Gemini Flash (free tier)
-- **Web search**: Tavily (xem "Quyết định đã chốt" ở trên)
-- **Hạ tầng**: self-hosted, Docker — không dùng managed service trả phí
-  trừ khi thực sự cần thiết (đúng pattern các dự án khác của chủ dự án)
+- **Mobile**: Flutter (Dart) — **đây là toàn bộ app, không có backend**.
+- **DB/cache trên thiết bị**: `sqflite` (SQLite local, không phải server).
+- **Secure storage client**: `flutter_secure_storage` — dùng cho MỌI API
+  key BYOK (LLM, Places/Geocoding, Weather, Search), không dùng cho gì khác.
+- **LLM**: người dùng tự chọn provider (Gemini / Groq / OpenRouter /
+  OpenAI) + tự nhập key — không có provider/key mặc định của app.
+- **Web search**: Tavily, BYOK, tuỳ chọn (không bắt buộc — thiếu key thì
+  bỏ qua bước search, LLM trả lời bằng kiến thức sẵn có và nói rõ không có
+  nguồn).
+- **`backend/` (Python/FastAPI)**: còn trong repo, có test, nhưng KHÔNG
+  được mobile app dùng — xem quyết định đợt 2 ở trên.
 
 ## Cấu trúc thư mục (thực tế, đã triển khai)
 
 ```
-/backend
-  /app
-    /api/routes      # location.py (search/resolve/refresh), meta.py (usage/cache)
-    /services
-      places.py       # Google Places integration
-      weather.py       # Weather API integration
-      geocode.py        # free-text query -> candidates
-      timezone.py        # coordinate -> IANA timezone, offline (timezonefinder)
-      emergency.py        # static per-country lookup table
-      search.py             # Tavily web search
-      llm.py                 # LLM aggregator: prompt building, provider routing, fallback
-      rate_limit.py            # per-device free-tier daily limit
-      cache.py                  # SQLite cache read/write, per-item TTL
-      orchestrator.py            # ties everything together per SDD §3 pipeline
-    /models            # Pydantic schemas — bám sát JSON schema ở SDD mục 4
-    /db                 # schema.sql + sqlite3 connection helper
-    config.py             # env vars, provider keys mặc định của app
-  /tests                    # pytest — cache TTL, rate limit, emergency, routes, llm parsing
-  /data
-    emergency_numbers.json     # bảng tĩnh, KHÔNG qua LLM
-  Dockerfile
-  docker-compose.yml
+/backend            # Còn trong repo nhưng app KHÔNG gọi tới nữa (xem quyết định đợt 2)
+  ... (giữ nguyên, xem code — không cần đọc để sửa mobile app)
 
 /mobile
   /lib
@@ -83,56 +103,69 @@ trước đó được đánh dấu "chưa chốt" trong SDD:
       graph/               # Node-graph 2-tier (node_graph_screen.dart, detail_panel.dart)
       settings/
         language_settings_screen.dart
-        llm_settings_screen.dart
+        llm_settings_screen.dart      # provider + key LLM, detail level, show sources
+        api_keys_settings_screen.dart   # key Places/Geocoding, Weather, Search (Tavily)
         privacy_settings_screen.dart
         settings_home_screen.dart
-      search/               # search_screen.dart — đơn giản, chức năng (xem "Quyết định đã chốt")
+      search/               # search_screen.dart — đơn giản, chức năng
       history/                # history_screen.dart — tương tự
     /widgets
       node_graph/            # ring_layout, graph_node, connector_painter, graph_icons
       common/                  # settings_scaffold.dart
+    /db
+      app_database.dart          # sqflite: mở DB, tạo bảng locations/cache_items
     /services
-      api_client.dart
-      secure_storage.dart       # CHỈ dùng cho BYOK key
-      settings_service.dart       # SharedPreferences — mọi setting không nhạy cảm
+      cache_service.dart           # Dart port của backend/app/services/cache.py — TTL theo item
+      geocode_service.dart           # Google Geocoding, gọi thẳng (BYOK)
+      places_service.dart              # Google Places (nearby/airport/hospital), gọi thẳng (BYOK)
+      weather_service.dart               # OpenWeatherMap, gọi thẳng (BYOK)
+      web_search_service.dart              # Tavily, gọi thẳng (BYOK, tuỳ chọn)
+      llm_service.dart                       # Port của backend/app/services/llm.py — prompt + provider routing
+      timezone_service.dart                    # offline, tính gần đúng từ kinh độ
+      emergency_service.dart                     # tra bảng tĩnh, bundle JSON asset
+      orchestrator_service.dart                    # Dart port của backend/app/services/orchestrator.py
+      secure_storage.dart                            # MỌI API key BYOK (LLM + Places + Weather + Search)
+      settings_service.dart                            # SharedPreferences — setting không nhạy cảm
       history_service.dart
     /state
       app_settings.dart            # ChangeNotifier bọc SettingsService + SecureStorageService
-      location_provider.dart         # ChangeNotifier điều khiển fetch/refresh location
+      location_provider.dart         # ChangeNotifier gọi orchestrator_service.dart trực tiếp (không qua HTTP)
     /l10n                              # ARB files (app_en.arb, app_vi.arb) + generated/ (xem README)
     /theme
       colors.dart                       # bám theo palette ở SDD mục 9, KHÔNG tự đổi màu
       typography.dart                     # Fraunces (display) + Inter (body), qua google_fonts
     /data
-      mock_location.dart                    # fixture cho demo/offline, khớp schema backend
+      mock_location.dart                    # fixture cho demo, khớp schema ChildItem/Group/LocationResponse
+    /assets
+      emergency_numbers.json                  # copy từ backend/data/, bundle vào app
 ```
 
 ## Nguyên tắc thiết kế cần giữ khi code
 
 1. **Không phải mọi mục thông tin đều gọi LLM.** Tổng cộng có 21 mục con.
-   3 mục (Places, Weather, Airport) lấy từ API structured; 2 mục (Timezone,
-   Emergency) tính/tra cứu offline không qua LLM. Chỉ 16/21 mục còn lại mới
-   qua LLM (`app.models.location.LLM_ITEM_IDS`). Xem bảng đầy đủ ở SDD mục
-   4 — đừng gộp chung logic.
+   3 mục (Places, Weather, Airport) gọi API structured trực tiếp; 2 mục
+   (Timezone, Emergency) tính/tra cứu offline không qua LLM, không cần key.
+   Chỉ 16/21 mục còn lại mới qua LLM. Đừng gộp chung logic.
 
 2. **Số khẩn cấp và visa là dữ liệu rủi ro cao.** Emergency dùng bảng tra
-   cứu tĩnh (`backend/data/emergency_numbers.json`), không qua LLM. Visa
-   qua LLM nhưng LUÔN kèm disclaimer "kiểm tra nguồn chính thức"
-   (`llm.RISK_DISCLAIMER_ITEMS`).
+   cứu tĩnh (`mobile/assets/emergency_numbers.json`), không qua LLM, không
+   cần mạng. Visa qua LLM nhưng LUÔN kèm disclaimer "kiểm tra nguồn chính
+   thức".
 
-3. **Cache-first.** Mọi request phải check cache theo `location_id` trước
-   khi gọi Places/Weather/search/LLM. TTL khác nhau theo loại dữ liệu (SDD
-   mục 5, `cache.TTL_BY_ITEM`) — không dùng 1 TTL chung cho tất cả.
+3. **Cache-first, cache cục bộ trên máy.** Mọi lần xem 1 địa điểm phải
+   check `sqflite` cache theo `location_id` trước khi gọi Places/Weather/
+   search/LLM. TTL khác nhau theo loại dữ liệu (`cache_service.dart`
+   `ttlByItem`) — không dùng 1 TTL chung cho tất cả.
 
-4. **Free-tier LLM có rate limit theo thiết bị.** `rate_limit.py` track
-   usage theo `device_id` (không cần tài khoản) để áp giới hạn — tránh 1
-   user dùng hết quota Gemini Flash miễn phí của cả app.
+4. **Mọi provider đều là BYOK, không có rate limit của app.** Không còn
+   `device_id`/free-tier — mỗi provider (LLM, Places, Weather, Search) chỉ
+   hoạt động khi người dùng tự nhập key tương ứng trong Settings. Thiếu key
+   nào thì các mục phụ thuộc key đó hiển thị trạng thái "cần thêm API key"
+   thay vì lỗi khó hiểu.
 
-5. **BYOK key không bao giờ chạm vào backend DB/log/analytics.** Key chỉ
-   sống trong 1 request (`LLMRequestSettings.byok_api_key`), dùng để gọi
-   thẳng provider, không bao giờ được `cache.put_item`-ed hay ghi log. Xem
-   "Quyết định đã chốt" #4 ở trên cho lý do vẫn route qua backend thay vì
-   gọi thẳng từ client.
+5. **API key KHÔNG BAO GIỜ rời khỏi thiết bị ngoài lúc gọi thẳng provider.**
+   Lưu ở `flutter_secure_storage`, không log, không gửi đi đâu khác ngoài
+   request tới đúng provider đó.
 
 6. **Animation ambient trong node-graph phải tôn trọng
    `prefers-reduced-motion`** (`MediaQuery.disableAnimations` trong Flutter)
@@ -165,29 +198,32 @@ const borderColor = Color(0xFF2A4356);
 
 ## Trạng thái hiện tại / việc cần làm tiếp
 
-- [x] Backend: cache layer + Places/Weather/Timezone/Emergency integration.
-- [x] Backend: LLM aggregator (Gemini free-tier + BYOK Gemini/Groq/OpenRouter/OpenAI, fallback).
-- [x] Backend: pytest suite (26 tests, chạy qua `cd backend && pytest`).
+- [x] Backend (Python/FastAPI) — đầy đủ chức năng, có test, nhưng KHÔNG
+      còn được mobile app dùng (xem quyết định đợt 2).
 - [x] Mobile: node-graph widget (tier 1 + tier 2 + detail panel), mock data.
-- [x] Mobile: settings LLM/Language/Privacy.
-- [x] Mobile ↔ backend nối thật qua `ApiClient` (chưa test trên thiết bị/emulator thật).
-- [x] Settings ngôn ngữ/đơn vị + `flutter_localizations` setup (ARB + hand-authored generated classes, xem `mobile/README.md`).
-- [x] Search/History UI — đã xác nhận với chủ dự án, triển khai bản đơn giản.
+- [x] Mobile: chuyển sang kiến trúc client-only — cache `sqflite`, gọi
+      thẳng Places/Weather/Search/LLM bằng BYOK key, port toàn bộ logic
+      cache TTL + prompt building + orchestration từ backend Python sang
+      Dart.
+- [x] Settings: API Keys (Places/Weather/Search), LLM (provider + key,
+      không còn free tier), Privacy (cache local, không còn "backend server
+      URL").
 - [x] Cài Flutter SDK (3.44.8 stable) trong môi trường build, chạy
       `flutter create .`, `flutter analyze` (0 issues), `flutter test`,
-      `flutter build linux`/`flutter build web` — tất cả pass. Đã chạy thử
-      app Linux build (qua Xvfb) nối với backend thật, xác nhận search
-      screen, node-graph (tier 1/2 + detail panel + refresh), và LLM
-      settings (fetch usage thật từ backend) hoạt động đúng.
-- [ ] Điền API keys thật (Google Places/Geocoding, OpenWeatherMap, Tavily, Gemini) và test end-to-end với dữ liệu thật.
-- [ ] Build/test Android và iOS — môi trường build này không có Android SDK/Xcode.
-- [ ] Test trên thiết bị/emulator di động thật (chỉ mới test Linux desktop build).
+      `flutter build linux`/`flutter build web`/`flutter build apk` (qua
+      GitHub Actions CI, môi trường build sandbox không có Android SDK khả
+      dụng — xem `.github/workflows/build-apk.yml`).
+- [ ] Test trên thiết bị thật với API key thật (Google Places/Geocoding,
+      OpenWeatherMap, Tavily, và 1 provider LLM) — môi trường build chưa có
+      key nào để test end-to-end.
+- [ ] Build/test iOS — môi trường build không có Xcode.
 - [ ] Mở rộng bảng số khẩn cấp ngoài ~40 quốc gia hiện có.
 
 ## Việc KHÔNG được tự quyết định (còn lại)
 
-- Đổi model LLM mặc định khỏi Gemini Flash mà không hỏi lại.
-- Đổi web search provider khỏi Tavily mà không hỏi lại (đã chốt 2026-08-04).
-- Thêm bất kỳ managed service trả phí nào vào kiến trúc mà không hỏi lại.
+- Đổi web search provider khỏi Tavily mà không hỏi lại.
+- Thêm bất kỳ managed/paid service nào (vd: quay lại có backend, hoặc thêm
+  1 API trả phí khác) mà không hỏi lại — kiến trúc client-only + BYOK đã
+  chốt ở đợt 2, đừng tự ý quay lại backend.
 - Thiết kế lại UI Search/History thành phiên bản "đầy đủ" (đã triển khai bản
   tối giản; nếu muốn nâng cấp UI, xác nhận hướng thiết kế trước).

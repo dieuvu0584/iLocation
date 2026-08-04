@@ -50,6 +50,8 @@ class DetailPanel extends StatelessWidget {
         return l10n.detailSourceApi;
       case 'search':
         return l10n.detailSourceSearch;
+      case 'missing_key':
+        return l10n.detailSourceMissingKey;
       default:
         return l10n.detailSourceStatic;
     }

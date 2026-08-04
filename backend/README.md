@@ -1,5 +1,11 @@
 # Location Info Explorer — Backend
 
+> **Not used by the mobile app.** The app was rearchitected to be fully
+> client-side (SQLite cache on-device, direct BYOK calls to every provider)
+> — see `CLAUDE.md` → "Quyết định đã chốt 2026-08-04 (đợt 2)". This service
+> still runs and has its own test suite, kept here in case a server-side
+> cache is wanted again later, but nothing in `mobile/` calls it anymore.
+
 FastAPI backend implementing the pipeline described in `SDD.md` §3: cache-first,
 then parallel Places/Weather/timezone/emergency-table lookups plus web-search +
 LLM summarization for the remaining free-text fields.

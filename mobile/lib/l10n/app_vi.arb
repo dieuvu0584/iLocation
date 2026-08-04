@@ -8,7 +8,8 @@
   "searchRecent": "Gần đây",
   "searchTryDemo": "Dùng thử (Đà Lạt)",
   "searchNoResults": "Không tìm thấy kết quả phù hợp. Hãy thử từ khóa khác.",
-  "searchError": "Không kết nối được máy chủ. Kiểm tra mạng hoặc dùng thử demo.",
+  "searchError": "Có lỗi xảy ra. Kiểm tra mạng hoặc dùng thử demo.",
+  "searchNoPlacesKey": "Thêm Google Places API key ở Cài đặt → API Keys để tìm địa điểm thật, hoặc dùng thử demo.",
   "searchChooseMatch": "Chọn địa điểm",
 
   "graphBack": "Quay lại",
@@ -24,6 +25,7 @@
   "detailSourceApi": "Dữ liệu trực tiếp",
   "detailSourceStatic": "Dữ liệu tham chiếu",
   "detailSourceSearch": "Kết quả tìm kiếm thô",
+  "detailSourceMissingKey": "Cần thêm API key",
   "detailUpdatedAt": "Cập nhật {date}",
   "@detailUpdatedAt": {
     "placeholders": { "date": { "type": "String" } }
@@ -35,8 +37,10 @@
   "settingsTitle": "Cài đặt",
   "settingsLanguageUnits": "Ngôn ngữ & Đơn vị",
   "settingsLanguageUnitsDesc": "Ngôn ngữ giao diện, ngôn ngữ nội dung, đơn vị khoảng cách/nhiệt độ",
+  "settingsApiKeys": "API Keys",
+  "settingsApiKeysDesc": "Địa điểm, thời tiết, tìm kiếm — cần để lấy dữ liệu thật",
   "settingsAiAssistant": "Trợ lý AI",
-  "settingsAiAssistantDesc": "Gói miễn phí hoặc API key riêng, độ chi tiết, nguồn",
+  "settingsAiAssistantDesc": "API key LLM của riêng bạn, độ chi tiết, nguồn",
   "settingsDataPrivacy": "Dữ liệu & Quyền riêng tư",
   "settingsDataPrivacyDesc": "Cache, lịch sử, quyền vị trí, chuyển động, cỡ chữ",
 
@@ -53,22 +57,20 @@
   "fahrenheit": "Độ F (°F)",
   "systemDefault": "Theo hệ thống",
 
+  "apiKeysTitle": "API Keys",
+  "placesApiKeyLabel": "Google Places / Geocoding API key",
+  "placesApiKeyDesc": "Cần để tìm kiếm, xem địa điểm gần và sân bay gần nhất.",
+  "weatherApiKeyLabel": "OpenWeatherMap API key",
+  "weatherApiKeyDesc": "Cần để xem thời tiết hiện tại.",
+  "searchApiKeyLabel": "Tavily search API key (tùy chọn)",
+  "searchApiKeyDesc": "Giúp AI tổng hợp dựa trên kết quả tìm kiếm thật. Nếu không có, AI chỉ trả lời bằng kiến thức sẵn có.",
+
   "llmSettingsTitle": "Trợ lý AI",
   "llmEnabled": "Bật tóm tắt AI",
-  "llmEnabledDesc": "Khi tắt, bạn sẽ thấy kết quả tìm kiếm thô thay vì tóm tắt AI",
-  "providerMode": "Nhà cung cấp",
-  "providerFree": "Miễn phí (của ứng dụng)",
-  "providerByok": "Dùng API key của tôi",
-  "freeTierUsage": "Đã dùng {used}/{limit} lượt hôm nay",
-  "@freeTierUsage": {
-    "placeholders": { "used": { "type": "int" }, "limit": { "type": "int" } }
-  },
-  "freeTierWarning": "Bạn sắp đạt giới hạn miễn phí hôm nay.",
+  "llmEnabledDesc": "Khi tắt, các mục đó sẽ để trống thay vì gọi LLM",
   "byokProviderLabel": "Nhà cung cấp",
   "byokApiKey": "API key",
   "byokApiKeyHint": "Chỉ lưu an toàn trên thiết bị này",
-  "fallbackEnabled": "Chuyển sang gói miễn phí khi bị giới hạn",
-  "fallbackEnabledDesc": "Nếu nhà cung cấp của bạn bị rate-limit, tự động thử lại bằng gói miễn phí",
   "detailLevel": "Độ chi tiết",
   "detailLevelShort": "Ngắn gọn",
   "detailLevelDetailed": "Chi tiết",
@@ -88,9 +90,6 @@
   "reducedMotion": "Giảm chuyển động",
   "reducedMotionDesc": "Tắt hiệu ứng chuyển động nền trong node-graph",
   "fontSize": "Cỡ chữ",
-  "serverUrl": "Địa chỉ máy chủ backend",
-  "serverUrlDesc": "Bắt buộc khi chạy trên thiết bị thật — địa chỉ mặc định chỉ dùng được trên emulator/simulator. Nhập địa chỉ backend của bạn, ví dụ http://192.168.1.42:8000",
-  "serverUrlHint": "http://192.168.1.42:8000",
 
   "historyTitle": "Lịch sử",
   "historyEmpty": "Chưa có địa điểm nào được tra cứu.",

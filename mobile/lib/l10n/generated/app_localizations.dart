@@ -137,8 +137,14 @@ abstract class AppLocalizations {
   /// No description provided for @searchError.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t reach the server. Check your connection or try the demo.'**
+  /// **'Something went wrong. Check your connection or try the demo.'**
   String get searchError;
+
+  /// No description provided for @searchNoPlacesKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a Google Places API key in Settings → API Keys to search for real places, or try the demo instead.'**
+  String get searchNoPlacesKey;
 
   /// No description provided for @searchChooseMatch.
   ///
@@ -218,6 +224,12 @@ abstract class AppLocalizations {
   /// **'Raw search results'**
   String get detailSourceSearch;
 
+  /// No description provided for @detailSourceMissingKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs API key'**
+  String get detailSourceMissingKey;
+
   /// No description provided for @detailUpdatedAt.
   ///
   /// In en, this message translates to:
@@ -260,6 +272,18 @@ abstract class AppLocalizations {
   /// **'UI language, content language, distance/temperature units'**
   String get settingsLanguageUnitsDesc;
 
+  /// No description provided for @settingsApiKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'API Keys'**
+  String get settingsApiKeys;
+
+  /// No description provided for @settingsApiKeysDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Places, weather, and search — required to fetch real data'**
+  String get settingsApiKeysDesc;
+
   /// No description provided for @settingsAiAssistant.
   ///
   /// In en, this message translates to:
@@ -269,7 +293,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsAiAssistantDesc.
   ///
   /// In en, this message translates to:
-  /// **'Free tier or your own API key, detail level, sources'**
+  /// **'Your own LLM API key, detail level, sources'**
   String get settingsAiAssistantDesc;
 
   /// No description provided for @settingsDataPrivacy.
@@ -356,6 +380,48 @@ abstract class AppLocalizations {
   /// **'System default'**
   String get systemDefault;
 
+  /// No description provided for @apiKeysTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'API Keys'**
+  String get apiKeysTitle;
+
+  /// No description provided for @placesApiKeyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Places / Geocoding API key'**
+  String get placesApiKeyLabel;
+
+  /// No description provided for @placesApiKeyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Needed for search, nearby places, and the nearest airport.'**
+  String get placesApiKeyDesc;
+
+  /// No description provided for @weatherApiKeyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'OpenWeatherMap API key'**
+  String get weatherApiKeyLabel;
+
+  /// No description provided for @weatherApiKeyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Needed for the current weather.'**
+  String get weatherApiKeyDesc;
+
+  /// No description provided for @searchApiKeyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tavily search API key (optional)'**
+  String get searchApiKeyLabel;
+
+  /// No description provided for @searchApiKeyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Grounds AI-summarized answers in real search results. Without it, the AI answers from general knowledge only.'**
+  String get searchApiKeyDesc;
+
   /// No description provided for @llmSettingsTitle.
   ///
   /// In en, this message translates to:
@@ -371,38 +437,8 @@ abstract class AppLocalizations {
   /// No description provided for @llmEnabledDesc.
   ///
   /// In en, this message translates to:
-  /// **'When off, you\'ll see raw search results instead of AI summaries'**
+  /// **'When off, those items are simply left blank instead of calling an LLM'**
   String get llmEnabledDesc;
-
-  /// No description provided for @providerMode.
-  ///
-  /// In en, this message translates to:
-  /// **'Provider'**
-  String get providerMode;
-
-  /// No description provided for @providerFree.
-  ///
-  /// In en, this message translates to:
-  /// **'Free (app-provided)'**
-  String get providerFree;
-
-  /// No description provided for @providerByok.
-  ///
-  /// In en, this message translates to:
-  /// **'Use my own API key'**
-  String get providerByok;
-
-  /// No description provided for @freeTierUsage.
-  ///
-  /// In en, this message translates to:
-  /// **'{used} of {limit} requests used today'**
-  String freeTierUsage(int used, int limit);
-
-  /// No description provided for @freeTierWarning.
-  ///
-  /// In en, this message translates to:
-  /// **'You\'re close to today\'s free limit.'**
-  String get freeTierWarning;
 
   /// No description provided for @byokProviderLabel.
   ///
@@ -421,18 +457,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stored securely on this device only'**
   String get byokApiKeyHint;
-
-  /// No description provided for @fallbackEnabled.
-  ///
-  /// In en, this message translates to:
-  /// **'Fall back to free tier on rate limit'**
-  String get fallbackEnabled;
-
-  /// No description provided for @fallbackEnabledDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'If your provider hits a rate limit, retry using the app\'s free tier'**
-  String get fallbackEnabledDesc;
 
   /// No description provided for @detailLevel.
   ///
@@ -541,24 +565,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Font size'**
   String get fontSize;
-
-  /// No description provided for @serverUrl.
-  ///
-  /// In en, this message translates to:
-  /// **'Backend server URL'**
-  String get serverUrl;
-
-  /// No description provided for @serverUrlDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Required on a real device — the built-in default only works on an emulator/simulator. Point this at your backend, e.g. http://192.168.1.42:8000'**
-  String get serverUrlDesc;
-
-  /// No description provided for @serverUrlHint.
-  ///
-  /// In en, this message translates to:
-  /// **'http://192.168.1.42:8000'**
-  String get serverUrlHint;
 
   /// No description provided for @historyTitle.
   ///

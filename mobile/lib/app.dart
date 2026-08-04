@@ -4,8 +4,10 @@ import 'package:provider/provider.dart';
 
 import 'l10n/generated/app_localizations.dart';
 import 'screens/search/search_screen.dart';
-import 'services/api_client.dart';
+import 'services/cache_service.dart';
+import 'services/geocode_service.dart';
 import 'services/history_service.dart';
+import 'services/orchestrator_service.dart';
 import 'state/app_settings.dart';
 import 'state/location_provider.dart';
 import 'theme/app_theme.dart';
@@ -13,26 +15,31 @@ import 'theme/app_theme.dart';
 class LocationExplorerApp extends StatelessWidget {
   final AppSettings appSettings;
   final HistoryService historyService;
-  final ApiClient apiClient;
 
   const LocationExplorerApp({
     super.key,
     required this.appSettings,
     required this.historyService,
-    required this.apiClient,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cacheService = CacheService();
+    final orchestrator = OrchestratorService(cache: cacheService);
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AppSettings>.value(value: appSettings),
         Provider<HistoryService>.value(value: historyService),
-        Provider<ApiClient>.value(value: apiClient),
+        Provider<CacheService>.value(value: cacheService),
+        Provider<GeocodeService>.value(value: GeocodeService()),
+        Provider<OrchestratorService>.value(value: orchestrator),
         ChangeNotifierProxyProvider<AppSettings, LocationProvider>(
-          create: (_) => LocationProvider(apiClient: apiClient, historyService: historyService, appSettings: appSettings),
+          create: (_) =>
+              LocationProvider(orchestrator: orchestrator, historyService: historyService, appSettings: appSettings),
           update: (_, __, previous) =>
-              previous ?? LocationProvider(apiClient: apiClient, historyService: historyService, appSettings: appSettings),
+              previous ??
+              LocationProvider(orchestrator: orchestrator, historyService: historyService, appSettings: appSettings),
         ),
       ],
       child: Consumer<AppSettings>(

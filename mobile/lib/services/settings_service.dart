@@ -1,44 +1,30 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uuid/uuid.dart';
 
 import '../models/settings_models.dart';
 
 /// Wraps SharedPreferences for every setting that isn't secret (SDD §7).
-/// The BYOK API key is the one exception — see SecureStorageService.
+/// API keys are the exception — see SecureStorageService. Client-only
+/// architecture (CLAUDE.md "Quyết định đã chốt 2026-08-04 (đợt 2)"): no
+/// device_id/rate-limit/backend-URL concept anymore.
 class SettingsService {
-  static const _kDeviceId = 'device_id';
   static const _kUiLocale = 'ui_locale'; // null/absent = follow system
   static const _kContentLanguage = 'content_language';
   static const _kDistanceUnit = 'distance_unit';
   static const _kTemperatureUnit = 'temperature_unit';
   static const _kCurrencyFormat = 'currency_format';
   static const _kLlmEnabled = 'llm_enabled';
-  static const _kProviderMode = 'provider_mode';
   static const _kByokProvider = 'byok_provider';
-  static const _kFallbackEnabled = 'fallback_enabled';
   static const _kDetailLevel = 'detail_level';
   static const _kShowSources = 'show_sources';
   static const _kGpsEnabled = 'gps_enabled';
   static const _kReducedMotion = 'reduced_motion';
   static const _kFontScale = 'font_scale';
-  static const _kServerBaseUrl = 'server_base_url'; // null/absent = platform default
 
   final SharedPreferences _prefs;
 
   SettingsService(this._prefs);
 
   static Future<SettingsService> create() async => SettingsService(await SharedPreferences.getInstance());
-
-  /// Stable per-install identifier used for free-tier rate limiting
-  /// (CLAUDE.md principle #4) — not a user account, just a device tag.
-  String get deviceId {
-    var id = _prefs.getString(_kDeviceId);
-    if (id == null) {
-      id = const Uuid().v4();
-      _prefs.setString(_kDeviceId, id);
-    }
-    return id;
-  }
 
   String? get uiLocale => _prefs.getString(_kUiLocale);
   Future<void> setUiLocale(String? localeCode) async {
@@ -70,16 +56,8 @@ class SettingsService {
   bool get llmEnabled => _prefs.getBool(_kLlmEnabled) ?? true;
   Future<void> setLlmEnabled(bool value) => _prefs.setBool(_kLlmEnabled, value);
 
-  ProviderMode get providerMode =>
-      _prefs.getString(_kProviderMode) == 'byok' ? ProviderMode.byok : ProviderMode.free;
-  Future<void> setProviderMode(ProviderMode mode) =>
-      _prefs.setString(_kProviderMode, mode == ProviderMode.byok ? 'byok' : 'free');
-
   ByokProvider get byokProvider => ByokProviderX.fromApiValue(_prefs.getString(_kByokProvider) ?? 'gemini');
   Future<void> setByokProvider(ByokProvider provider) => _prefs.setString(_kByokProvider, provider.apiValue);
-
-  bool get fallbackEnabled => _prefs.getBool(_kFallbackEnabled) ?? false;
-  Future<void> setFallbackEnabled(bool value) => _prefs.setBool(_kFallbackEnabled, value);
 
   DetailLevel get detailLevel =>
       _prefs.getString(_kDetailLevel) == 'detailed' ? DetailLevel.detailed : DetailLevel.short;
@@ -97,15 +75,4 @@ class SettingsService {
 
   double get fontScale => _prefs.getDouble(_kFontScale) ?? 1.0;
   Future<void> setFontScale(double value) => _prefs.setDouble(_kFontScale, value);
-
-  /// Backend URL override — required on a real device, where the built-in
-  /// emulator/simulator defaults (10.0.2.2, localhost) don't mean anything.
-  String? get serverBaseUrl => _prefs.getString(_kServerBaseUrl);
-  Future<void> setServerBaseUrl(String? url) async {
-    if (url == null || url.trim().isEmpty) {
-      await _prefs.remove(_kServerBaseUrl);
-    } else {
-      await _prefs.setString(_kServerBaseUrl, url.trim());
-    }
-  }
 }

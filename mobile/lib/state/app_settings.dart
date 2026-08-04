@@ -6,6 +6,9 @@ import '../services/settings_service.dart';
 
 /// Reactive wrapper around SettingsService + SecureStorageService so widgets
 /// can listen for changes (locale, units, LLM config, reduced motion, etc).
+/// Client-only architecture (CLAUDE.md "Quyết định đã chốt 2026-08-04 (đợt
+/// 2)") — every provider key is BYOK, there's no free-tier/device_id/backend
+/// concept anymore.
 class AppSettings extends ChangeNotifier {
   final SettingsService _settings;
   final SecureStorageService _secureStorage;
@@ -16,8 +19,6 @@ class AppSettings extends ChangeNotifier {
     final settings = await SettingsService.create();
     return AppSettings(settings, SecureStorageService());
   }
-
-  String get deviceId => _settings.deviceId;
 
   Locale? get uiLocale {
     final code = _settings.uiLocale;
@@ -59,33 +60,33 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
   }
 
-  ProviderMode get providerMode => _settings.providerMode;
-  Future<void> setProviderMode(ProviderMode mode) async {
-    await _settings.setProviderMode(mode);
-    notifyListeners();
-  }
-
-  ByokProvider get byokProvider => _settings.byokProvider;
-  Future<void> setByokProvider(ByokProvider provider) async {
+  ByokProvider get llmProvider => _settings.byokProvider;
+  Future<void> setLlmProvider(ByokProvider provider) async {
     await _settings.setByokProvider(provider);
     notifyListeners();
   }
 
-  Future<String?> getByokApiKey() => _secureStorage.readByokApiKey();
-
-  Future<void> setByokApiKey(String apiKey) async {
-    await _secureStorage.writeByokApiKey(apiKey);
+  Future<String?> getLlmApiKey() => _secureStorage.readLlmApiKey();
+  Future<void> setLlmApiKey(String apiKey) async {
+    await _secureStorage.writeLlmApiKey(apiKey);
     notifyListeners();
   }
 
-  Future<void> clearByokApiKey() async {
-    await _secureStorage.deleteByokApiKey();
+  Future<String?> getPlacesApiKey() => _secureStorage.readPlacesApiKey();
+  Future<void> setPlacesApiKey(String apiKey) async {
+    await _secureStorage.writePlacesApiKey(apiKey);
     notifyListeners();
   }
 
-  bool get fallbackEnabled => _settings.fallbackEnabled;
-  Future<void> setFallbackEnabled(bool value) async {
-    await _settings.setFallbackEnabled(value);
+  Future<String?> getWeatherApiKey() => _secureStorage.readWeatherApiKey();
+  Future<void> setWeatherApiKey(String apiKey) async {
+    await _secureStorage.writeWeatherApiKey(apiKey);
+    notifyListeners();
+  }
+
+  Future<String?> getSearchApiKey() => _secureStorage.readSearchApiKey();
+  Future<void> setSearchApiKey(String apiKey) async {
+    await _secureStorage.writeSearchApiKey(apiKey);
     notifyListeners();
   }
 
@@ -119,27 +120,21 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
   }
 
-  String? get serverBaseUrl => _settings.serverBaseUrl;
-  Future<void> setServerBaseUrl(String? url) async {
-    await _settings.setServerBaseUrl(url);
-    notifyListeners();
-  }
-
-  /// Builds the per-request settings payload sent to the backend with every
-  /// location fetch (SDD §7.2). Reads the BYOK key from secure storage only
-  /// at call time — it is never cached in memory beyond this object.
-  Future<LlmRequestSettings> buildLlmRequestSettings() async {
-    final byok = providerMode == ProviderMode.byok;
-    return LlmRequestSettings(
-      deviceId: deviceId,
+  /// Builds the settings payload the orchestrator needs to resolve one
+  /// location. Reads every key from secure storage only at call time — none
+  /// of them are cached in memory beyond this object, and none ever leave
+  /// the device except in a request to the provider that owns that key.
+  Future<RequestSettings> buildRequestSettings() async {
+    return RequestSettings(
       llmEnabled: llmEnabled,
-      providerMode: providerMode,
-      byokProvider: byok ? byokProvider : null,
-      byokApiKey: byok ? await getByokApiKey() : null,
-      fallbackEnabled: fallbackEnabled,
+      llmProvider: llmProvider,
+      llmApiKey: await getLlmApiKey(),
       detailLevel: detailLevel,
       showSources: showSources,
       contentLanguage: contentLanguage,
+      placesApiKey: await getPlacesApiKey(),
+      weatherApiKey: await getWeatherApiKey(),
+      searchApiKey: await getSearchApiKey(),
     );
   }
 }

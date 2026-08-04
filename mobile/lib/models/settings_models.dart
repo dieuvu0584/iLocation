@@ -1,7 +1,8 @@
-/// Mirrors backend/app/models/settings.py (SDD §7.2).
+/// Settings shape for the client-only architecture (CLAUDE.md "Quyết định
+/// đã chốt 2026-08-04 (đợt 2)"). Every provider is BYOK — there is no
+/// free-tier/fallback/device_id concept anymore, since there's no backend
+/// to hold a shared key or enforce a shared rate limit.
 library;
-
-enum ProviderMode { free, byok }
 
 enum ByokProvider { gemini, groq, openrouter, openai }
 
@@ -10,10 +11,6 @@ enum DetailLevel { short, detailed }
 enum DistanceUnit { km, miles }
 
 enum TemperatureUnit { celsius, fahrenheit }
-
-extension ProviderModeX on ProviderMode {
-  String get apiValue => this == ProviderMode.free ? 'free' : 'byok';
-}
 
 extension ByokProviderX on ByokProvider {
   String get apiValue => name;
@@ -26,41 +23,34 @@ extension DetailLevelX on DetailLevel {
   String get apiValue => this == DetailLevel.short ? 'short' : 'detailed';
 }
 
-/// Request payload sent alongside every location fetch — the BYOK API key
-/// (if any) lives here only for the duration of one request; it is read from
-/// secure storage right before the call and never persisted by this object.
-class LlmRequestSettings {
-  final String deviceId;
+/// Everything needed to resolve one location's data, read fresh from
+/// AppSettings/SecureStorageService right before use — keys are never
+/// cached in memory beyond the single orchestrator run that needs them.
+class RequestSettings {
   final bool llmEnabled;
-  final ProviderMode providerMode;
-  final ByokProvider? byokProvider;
-  final String? byokApiKey;
-  final bool fallbackEnabled;
+  final ByokProvider llmProvider;
+  final String? llmApiKey;
   final DetailLevel detailLevel;
   final bool showSources;
   final String contentLanguage;
+  final String? placesApiKey;
+  final String? weatherApiKey;
+  final String? searchApiKey;
 
-  const LlmRequestSettings({
-    required this.deviceId,
+  const RequestSettings({
     required this.llmEnabled,
-    required this.providerMode,
-    this.byokProvider,
-    this.byokApiKey,
-    required this.fallbackEnabled,
+    required this.llmProvider,
+    this.llmApiKey,
     required this.detailLevel,
     required this.showSources,
     required this.contentLanguage,
+    this.placesApiKey,
+    this.weatherApiKey,
+    this.searchApiKey,
   });
 
-  Map<String, dynamic> toJson() => {
-        'device_id': deviceId,
-        'llm_enabled': llmEnabled,
-        'provider_mode': providerMode.apiValue,
-        'byok_provider': byokProvider?.apiValue,
-        'byok_api_key': byokApiKey,
-        'fallback_enabled': fallbackEnabled,
-        'detail_level': detailLevel.apiValue,
-        'show_sources': showSources,
-        'content_language': contentLanguage,
-      };
+  bool get hasLlmKey => llmApiKey != null && llmApiKey!.trim().isNotEmpty;
+  bool get hasPlacesKey => placesApiKey != null && placesApiKey!.trim().isNotEmpty;
+  bool get hasWeatherKey => weatherApiKey != null && weatherApiKey!.trim().isNotEmpty;
+  bool get hasSearchKey => searchApiKey != null && searchApiKey!.trim().isNotEmpty;
 }

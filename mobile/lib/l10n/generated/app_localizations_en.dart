@@ -28,7 +28,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchError =>
-      'Couldn\'t reach the server. Check your connection or try the demo.';
+      'Something went wrong. Check your connection or try the demo.';
+
+  @override
+  String get searchNoPlacesKey =>
+      'Add a Google Places API key in Settings → API Keys to search for real places, or try the demo instead.';
 
   @override
   String get searchChooseMatch => 'Choose a match';
@@ -70,6 +74,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get detailSourceSearch => 'Raw search results';
 
   @override
+  String get detailSourceMissingKey => 'Needs API key';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'Updated $date';
   }
@@ -94,11 +101,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'UI language, content language, distance/temperature units';
 
   @override
+  String get settingsApiKeys => 'API Keys';
+
+  @override
+  String get settingsApiKeysDesc =>
+      'Places, weather, and search — required to fetch real data';
+
+  @override
   String get settingsAiAssistant => 'AI Assistant';
 
   @override
   String get settingsAiAssistantDesc =>
-      'Free tier or your own API key, detail level, sources';
+      'Your own LLM API key, detail level, sources';
 
   @override
   String get settingsDataPrivacy => 'Data & Privacy';
@@ -145,6 +159,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get systemDefault => 'System default';
 
   @override
+  String get apiKeysTitle => 'API Keys';
+
+  @override
+  String get placesApiKeyLabel => 'Google Places / Geocoding API key';
+
+  @override
+  String get placesApiKeyDesc =>
+      'Needed for search, nearby places, and the nearest airport.';
+
+  @override
+  String get weatherApiKeyLabel => 'OpenWeatherMap API key';
+
+  @override
+  String get weatherApiKeyDesc => 'Needed for the current weather.';
+
+  @override
+  String get searchApiKeyLabel => 'Tavily search API key (optional)';
+
+  @override
+  String get searchApiKeyDesc =>
+      'Grounds AI-summarized answers in real search results. Without it, the AI answers from general knowledge only.';
+
+  @override
   String get llmSettingsTitle => 'AI Assistant';
 
   @override
@@ -152,24 +189,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get llmEnabledDesc =>
-      'When off, you\'ll see raw search results instead of AI summaries';
-
-  @override
-  String get providerMode => 'Provider';
-
-  @override
-  String get providerFree => 'Free (app-provided)';
-
-  @override
-  String get providerByok => 'Use my own API key';
-
-  @override
-  String freeTierUsage(int used, int limit) {
-    return '$used of $limit requests used today';
-  }
-
-  @override
-  String get freeTierWarning => 'You\'re close to today\'s free limit.';
+      'When off, those items are simply left blank instead of calling an LLM';
 
   @override
   String get byokProviderLabel => 'Provider';
@@ -179,13 +199,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get byokApiKeyHint => 'Stored securely on this device only';
-
-  @override
-  String get fallbackEnabled => 'Fall back to free tier on rate limit';
-
-  @override
-  String get fallbackEnabledDesc =>
-      'If your provider hits a rate limit, retry using the app\'s free tier';
 
   @override
   String get detailLevel => 'Detail level';
@@ -245,16 +258,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fontSize => 'Font size';
-
-  @override
-  String get serverUrl => 'Backend server URL';
-
-  @override
-  String get serverUrlDesc =>
-      'Required on a real device — the built-in default only works on an emulator/simulator. Point this at your backend, e.g. http://192.168.1.42:8000';
-
-  @override
-  String get serverUrlHint => 'http://192.168.1.42:8000';
 
   @override
   String get historyTitle => 'History';

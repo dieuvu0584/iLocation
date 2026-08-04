@@ -12,6 +12,54 @@ const Map<String, List<String>> kChildIdsByGroup = {
   'entry_stay': ['visa', 'airport', 'stay', 'cost'],
 };
 
+/// Items backed directly by a structured API call — never sent through the LLM.
+const Set<String> kApiItemIds = {'places', 'weather', 'airport'};
+
+/// Items computed/looked up on-device, no network call, never sent to the LLM.
+const Set<String> kStaticItemIds = {'emergency', 'timezone'};
+
+/// Everything else is LLM-summarized from web search results.
+const Set<String> kLlmItemIds = {
+  'food', 'best_time', 'transport', 'power', 'currency', 'safety_level', 'health',
+  'water', 'insurance', 'language', 'etiquette', 'tipping', 'holidays', 'visa', 'stay', 'cost',
+};
+
+/// Group/child labels — kept as fixed English strings (not run through
+/// `AppLocalizations`), matching how the original backend always returned
+/// them regardless of content language; only the LLM-summarized text itself
+/// is localized (SDD §7.1: UI language vs content language are separate).
+const Map<String, String> kGroupLabels = {
+  'explore': 'Explore',
+  'practical': 'Practical',
+  'safety': 'Safety & Health',
+  'culture': 'Culture',
+  'entry_stay': 'Entry & Stay',
+};
+
+const Map<String, String> kChildLabels = {
+  'places': 'Nearby places',
+  'food': 'Local food',
+  'best_time': 'Best time to visit',
+  'weather': 'Weather',
+  'transport': 'Getting around',
+  'power': 'Power & SIM',
+  'currency': 'Currency & payments',
+  'timezone': 'Timezone',
+  'safety_level': 'Safety',
+  'health': 'Healthcare',
+  'water': 'Drinking water',
+  'insurance': 'Travel insurance',
+  'emergency': 'Emergency numbers',
+  'language': 'Language',
+  'etiquette': 'Etiquette',
+  'tipping': 'Tipping culture',
+  'holidays': 'Local holidays',
+  'visa': 'Visa',
+  'airport': 'Nearest airport',
+  'stay': 'Where to stay',
+  'cost': 'Cost of living',
+};
+
 class LocationInfo {
   final String id;
   final String name;

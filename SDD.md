@@ -21,6 +21,16 @@ danh sách tìm kiếm gần đây) — chưa chốt UI, cần thiết kế ti�
 > đơn giản, chức năng (text search + danh sách gần đây) theo xác nhận của
 > chủ dự án — xem `CLAUDE.md` mục "Quyết định đã chốt".
 
+> **Cập nhật 2026-08-04 (đợt 2) — KIẾN TRÚC ĐÃ ĐỔI: không còn backend.**
+> Toàn bộ nội dung §3 (kiến trúc) và phần "BYOK qua backend" ở §7.2 bên
+> dưới mô tả bản thiết kế GỐC (có backend FastAPI) — đã bị thay thế. Kiến
+> trúc thực tế hiện tại: app Flutter gọi thẳng mọi provider (Places,
+> Weather, Tavily, LLM) bằng key người dùng tự nhập, cache bằng SQLite cục
+> bộ trên máy (`sqflite`), không có server nào cả. Chi tiết đầy đủ + lý do
+> đổi hướng xem `CLAUDE.md` mục "Quyết định đã chốt → 2026-08-04 (đợt 2)".
+> Phần còn lại của tài liệu này (data model §4, node-graph UI §6, palette
+> §9) vẫn đúng nguyên vẹn — chỉ có "ai gọi API" và "cache ở đâu" là đổi.
+
 ---
 
 ## 2. Tech stack

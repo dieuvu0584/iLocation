@@ -28,8 +28,11 @@ class AppLocalizationsVi extends AppLocalizations {
       'Không tìm thấy kết quả phù hợp. Hãy thử từ khóa khác.';
 
   @override
-  String get searchError =>
-      'Không kết nối được máy chủ. Kiểm tra mạng hoặc dùng thử demo.';
+  String get searchError => 'Có lỗi xảy ra. Kiểm tra mạng hoặc dùng thử demo.';
+
+  @override
+  String get searchNoPlacesKey =>
+      'Thêm Google Places API key ở Cài đặt → API Keys để tìm địa điểm thật, hoặc dùng thử demo.';
 
   @override
   String get searchChooseMatch => 'Chọn địa điểm';
@@ -71,6 +74,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get detailSourceSearch => 'Kết quả tìm kiếm thô';
 
   @override
+  String get detailSourceMissingKey => 'Cần thêm API key';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'Cập nhật $date';
   }
@@ -95,11 +101,18 @@ class AppLocalizationsVi extends AppLocalizations {
       'Ngôn ngữ giao diện, ngôn ngữ nội dung, đơn vị khoảng cách/nhiệt độ';
 
   @override
+  String get settingsApiKeys => 'API Keys';
+
+  @override
+  String get settingsApiKeysDesc =>
+      'Địa điểm, thời tiết, tìm kiếm — cần để lấy dữ liệu thật';
+
+  @override
   String get settingsAiAssistant => 'Trợ lý AI';
 
   @override
   String get settingsAiAssistantDesc =>
-      'Gói miễn phí hoặc API key riêng, độ chi tiết, nguồn';
+      'API key LLM của riêng bạn, độ chi tiết, nguồn';
 
   @override
   String get settingsDataPrivacy => 'Dữ liệu & Quyền riêng tư';
@@ -146,6 +159,29 @@ class AppLocalizationsVi extends AppLocalizations {
   String get systemDefault => 'Theo hệ thống';
 
   @override
+  String get apiKeysTitle => 'API Keys';
+
+  @override
+  String get placesApiKeyLabel => 'Google Places / Geocoding API key';
+
+  @override
+  String get placesApiKeyDesc =>
+      'Cần để tìm kiếm, xem địa điểm gần và sân bay gần nhất.';
+
+  @override
+  String get weatherApiKeyLabel => 'OpenWeatherMap API key';
+
+  @override
+  String get weatherApiKeyDesc => 'Cần để xem thời tiết hiện tại.';
+
+  @override
+  String get searchApiKeyLabel => 'Tavily search API key (tùy chọn)';
+
+  @override
+  String get searchApiKeyDesc =>
+      'Giúp AI tổng hợp dựa trên kết quả tìm kiếm thật. Nếu không có, AI chỉ trả lời bằng kiến thức sẵn có.';
+
+  @override
   String get llmSettingsTitle => 'Trợ lý AI';
 
   @override
@@ -153,24 +189,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get llmEnabledDesc =>
-      'Khi tắt, bạn sẽ thấy kết quả tìm kiếm thô thay vì tóm tắt AI';
-
-  @override
-  String get providerMode => 'Nhà cung cấp';
-
-  @override
-  String get providerFree => 'Miễn phí (của ứng dụng)';
-
-  @override
-  String get providerByok => 'Dùng API key của tôi';
-
-  @override
-  String freeTierUsage(int used, int limit) {
-    return 'Đã dùng $used/$limit lượt hôm nay';
-  }
-
-  @override
-  String get freeTierWarning => 'Bạn sắp đạt giới hạn miễn phí hôm nay.';
+      'Khi tắt, các mục đó sẽ để trống thay vì gọi LLM';
 
   @override
   String get byokProviderLabel => 'Nhà cung cấp';
@@ -180,13 +199,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get byokApiKeyHint => 'Chỉ lưu an toàn trên thiết bị này';
-
-  @override
-  String get fallbackEnabled => 'Chuyển sang gói miễn phí khi bị giới hạn';
-
-  @override
-  String get fallbackEnabledDesc =>
-      'Nếu nhà cung cấp của bạn bị rate-limit, tự động thử lại bằng gói miễn phí';
 
   @override
   String get detailLevel => 'Độ chi tiết';
@@ -246,16 +258,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get fontSize => 'Cỡ chữ';
-
-  @override
-  String get serverUrl => 'Địa chỉ máy chủ backend';
-
-  @override
-  String get serverUrlDesc =>
-      'Bắt buộc khi chạy trên thiết bị thật — địa chỉ mặc định chỉ dùng được trên emulator/simulator. Nhập địa chỉ backend của bạn, ví dụ http://192.168.1.42:8000';
-
-  @override
-  String get serverUrlHint => 'http://192.168.1.42:8000';
 
   @override
   String get historyTitle => 'Lịch sử';

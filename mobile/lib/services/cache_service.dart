@@ -126,7 +126,10 @@ class CacheService {
     );
   }
 
-  /// Returns a cached item only if present and not expired.
+  /// Returns a cached item only if present and not expired. A `missing_key`
+  /// placeholder is never treated as fresh — the user may add the API key
+  /// at any time after it was cached, so it must always be retried instead
+  /// of sticking around for the item's full TTL (14-90 days).
   Future<ChildItem?> getItem(String locationId, String itemId) async {
     final db = await AppDatabase.instance;
     final rows = await db.query(
@@ -136,6 +139,7 @@ class CacheService {
     );
     if (rows.isEmpty) return null;
     final row = rows.first;
+    if (row['source'] == 'missing_key') return null;
     final expiresAt = row['expires_at'] as String?;
     if (expiresAt != null && DateTime.now().toUtc().isAfter(DateTime.parse(expiresAt))) {
       return null;

@@ -24,6 +24,16 @@ class PlacesException implements Exception {
 class PlacesService {
   static const _url = 'https://overpass-api.de/api/interpreter';
 
+  /// The public Overpass instance caps *concurrent* connections per client
+  /// (its documented fair-use limit is 2 in-flight requests) — since
+  /// `OrchestratorService` fetches every item in parallel via `Future.wait`,
+  /// and there are now 3 Overpass-backed items (places/airport/hotels) on a
+  /// single location load, firing them all at once got the 3rd silently
+  /// rejected or timed out. Chaining every Overpass call through this single
+  /// queue serializes them app-wide (one instance is shared for the whole
+  /// orchestrator), trading a bit of latency for not tripping the limit.
+  Future<void> _queue = Future.value();
+
   double _distanceMeters(double lat1, double lng1, double lat2, double lng2) {
     const earthRadiusM = 6371000.0;
     final dLat = _degToRad(lat2 - lat1);
@@ -36,7 +46,13 @@ class PlacesService {
 
   double _degToRad(double deg) => deg * (math.pi / 180);
 
-  Future<List<Map<String, dynamic>>> _query(String overpassQl) async {
+  Future<List<Map<String, dynamic>>> _query(String overpassQl) {
+    final result = _queue.then((_) => _rawQuery(overpassQl));
+    _queue = result.then((_) {}, onError: (_) {});
+    return result;
+  }
+
+  Future<List<Map<String, dynamic>>> _rawQuery(String overpassQl) async {
     final resp = await http.post(Uri.parse(_url), body: {'data': overpassQl});
     if (resp.statusCode != 200) {
       throw PlacesException('Overpass query failed (${resp.statusCode})');

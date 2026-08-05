@@ -88,11 +88,6 @@ class _SearchScreenState extends State<SearchScreen> {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NodeGraphScreen()));
   }
 
-  void _openDemo() {
-    context.read<LocationProvider>().loadMock();
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NodeGraphScreen()));
-  }
-
   @override
   void dispose() {
     _debounce?.cancel();
@@ -147,13 +142,11 @@ class _SearchScreenState extends State<SearchScreen> {
                   padding: EdgeInsets.symmetric(vertical: 16),
                   child: Center(child: CircularProgressIndicator(color: AppColors.accentAmber)),
                 ),
-              if (_status == _SearchStatus.error) ...[
+              if (_status == _SearchStatus.error)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text(_error ?? l10n.searchError, style: const TextStyle(color: AppColors.error)),
                 ),
-                OutlinedButton(onPressed: _openDemo, child: Text(l10n.searchTryDemo)),
-              ],
               if (_status == _SearchStatus.idle && _results.isEmpty && _controller.text.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
@@ -187,10 +180,6 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                 ),
               ],
-              const SizedBox(height: 24),
-              Center(
-                child: TextButton(onPressed: _openDemo, child: Text(l10n.searchTryDemo)),
-              ),
             ],
           ),
         ),

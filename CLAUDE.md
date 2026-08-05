@@ -23,6 +23,39 @@ production-ready dù là 1 người làm.
 
 ## Quyết định đã chốt
 
+### 2026-08-05 (đợt 6) — Node hình tròn, bỏ nút demo, sửa bug Hotels không ra dữ liệu
+
+Phản hồi tiếp theo từ thiết bị thật sau đợt 5 (screenshot node-graph +
+"vẫn chưa thấy thông tin khách sạn"):
+
+- **Node tier 2/3 (nhóm + mục con) đổi từ hình chữ nhật bo góc sang hình
+  tròn** — khớp với `CenterNode` (vốn đã là hình tròn từ đầu). Sửa trong
+  `RingNode` (`graph_node.dart`): `shape` đổi sang `CircleBorder`, thêm
+  `clipBehavior: Clip.antiAlias` để nội dung (icon + label 2 dòng) không bị
+  tràn ra ngoài viền tròn, `InkWell` dùng `customBorder: CircleBorder()`
+  thay vì `borderRadius` để hiệu ứng ripple đúng hình tròn. Tăng
+  `RingNode.size` từ 88 lên 96 để label 2 dòng vẫn đủ chỗ trong hình tròn
+  (hình tròn "lãng phí" diện tích ở 4 góc hơn hình vuông bo góc).
+- **Xóa nút "Try a demo (Da Lat)"** khỏi màn hình search — không còn cần
+  thiết vì search thật đã hoạt động ổn định. Xóa luôn
+  `LocationProvider.loadMock()` và file `lib/data/mock_location.dart` (chỉ
+  được dùng bởi 2 nút demo đó, không còn chỗ nào khác dùng tới).
+- **Bug: mục Hotels không hiện dữ liệu.** Nguyên nhân: Overpass
+  (`overpass-api.de`) giới hạn số kết nối đồng thời từ 1 client (~2 request
+  cùng lúc theo fair-use policy công khai của họ). Trước đợt 5 chỉ có 2 mục
+  gọi Overpass song song trong 1 lần tải địa điểm (`places` + `airport`,
+  qua `Future.wait` trong `orchestrator_service.dart`) — vừa đủ giới hạn.
+  Thêm `hotels` thành mục Overpass thứ 3 khiến 1 trong 3 request bị
+  từ chối/timeout ngẫu nhiên. **Sửa trong `places_service.dart`**: mọi
+  request Overpass (`places`/`airport`/`hotels`/hospital snippet cho
+  `health`) giờ chạy tuần tự qua 1 hàng đợi nội bộ (`_queue`, một
+  `Future` được chain nối tiếp) thay vì để `Future.wait` bắn đồng thời —
+  đánh đổi thêm 1 chút độ trễ khi tải lần đầu để không bao giờ vượt giới
+  hạn concurrent-connection của Overpass, dù sau này có thêm mục Overpass
+  nào nữa cũng an toàn. **Đây là lớp sửa lỗi quan trọng — đừng xóa hàng đợi
+  này nếu thêm mục Overpass mới, chỉ cần gọi qua `_query()` như các mục
+  hiện có.**
+
 ### 2026-08-05 (đợt 5) — Node-graph: quốc gia + giãn cách + 2 mục mới (Hotels, Signature photos)
 
 Phản hồi từ ảnh chụp màn hình thiết bị thật (node-graph tier 1):

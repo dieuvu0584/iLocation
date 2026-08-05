@@ -139,7 +139,7 @@ class RingNode extends StatelessWidget {
     this.onTap,
   });
 
-  static const double size = 88;
+  static const double size = 96;
 
   @override
   Widget build(BuildContext context) {
@@ -158,17 +158,15 @@ class RingNode extends StatelessWidget {
         height: size,
         child: Material(
           color: AppColors.cardBg1,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: AppColors.borderColor),
-          ),
+          shape: const CircleBorder(side: BorderSide(color: AppColors.borderColor)),
+          clipBehavior: Clip.antiAlias,
           child: InkWell(
-            borderRadius: BorderRadius.circular(20),
+            customBorder: const CircleBorder(),
             onTap: onTap,
             child: Stack(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -193,8 +191,8 @@ class RingNode extends StatelessWidget {
                 ),
                 if (hasWarning)
                   const Positioned(
-                    top: 4,
-                    right: 4,
+                    top: 6,
+                    right: 6,
                     child: Icon(Icons.error_outline, size: 14, color: AppColors.error),
                   ),
               ],

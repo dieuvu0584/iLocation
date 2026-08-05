@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-import '../data/mock_location.dart';
 import '../models/location_models.dart';
 import '../services/history_service.dart';
 import '../services/orchestrator_service.dart';
@@ -50,14 +49,6 @@ class LocationProvider extends ChangeNotifier {
       errorMessage = e.toString();
       status = LocationLoadStatus.error;
     }
-    notifyListeners();
-  }
-
-  void loadMock() {
-    candidate = mockCandidate;
-    response = buildMockLocationResponse();
-    status = LocationLoadStatus.loaded;
-    errorMessage = null;
     notifyListeners();
   }
 

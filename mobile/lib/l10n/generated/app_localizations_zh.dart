@@ -72,6 +72,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get detailSourceMissingKey => '需要 API 密钥';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return '更新于 $date';
   }

@@ -90,6 +90,36 @@ out body 40;
     );
   }
 
+  Future<ChildItem> getNearbyHotels(double lat, double lng) async {
+    final query = '''
+[out:json][timeout:25];
+node["tourism"~"^(hotel|guest_house|hostel|apartment)\$"](around:15000,$lat,$lng);
+out body 40;
+''';
+    final elements = await _query(query);
+    final sorted = _namedSortedByDistance(elements, lat, lng);
+    final top = sorted.take(10).toList();
+
+    final summary = sorted.isNotEmpty ? '${sorted.length} hotels nearby' : 'No nearby hotels found';
+    final detail = top.map((e) {
+      final tags = e['tags'] as Map<String, dynamic>;
+      final distanceKm =
+          (_distanceMeters(lat, lng, (e['lat'] as num).toDouble(), (e['lon'] as num).toDouble()) / 1000)
+              .toStringAsFixed(1);
+      return '- ${tags['name']} (~${distanceKm}km)';
+    }).join('\n');
+
+    return ChildItem(
+      id: 'hotels',
+      label: kChildLabels['hotels']!,
+      source: 'api',
+      summary: summary,
+      detail: detail.isEmpty ? 'No data available.' : detail,
+      sources: const [],
+      updatedAt: DateTime.now().toUtc(),
+    );
+  }
+
   Future<ChildItem> getNearestAirport(double lat, double lng) async {
     final query = '''
 [out:json][timeout:25];

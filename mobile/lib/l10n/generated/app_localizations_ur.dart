@@ -73,6 +73,12 @@ class AppLocalizationsUr extends AppLocalizations {
   String get detailSourceMissingKey => 'API کلید درکار ہے';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return '$date کو اپ ڈیٹ کیا گیا';
   }

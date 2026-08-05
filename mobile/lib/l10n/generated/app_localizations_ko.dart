@@ -72,6 +72,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get detailSourceMissingKey => 'API 키가 필요합니다';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return '$date에 업데이트됨';
   }

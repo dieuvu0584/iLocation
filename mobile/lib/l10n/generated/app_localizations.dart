@@ -289,6 +289,18 @@ abstract class AppLocalizations {
   /// **'Needs API key'**
   String get detailSourceMissingKey;
 
+  /// No description provided for @detailSourceLink.
+  ///
+  /// In en, this message translates to:
+  /// **'External link'**
+  String get detailSourceLink;
+
+  /// No description provided for @openLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Open link'**
+  String get openLink;
+
   /// No description provided for @detailUpdatedAt.
   ///
   /// In en, this message translates to:

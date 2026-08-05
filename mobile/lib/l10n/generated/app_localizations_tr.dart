@@ -73,6 +73,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get detailSourceMissingKey => 'API anahtarı gerekli';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'Güncellendi: $date';
   }

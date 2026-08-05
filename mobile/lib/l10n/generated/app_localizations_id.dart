@@ -74,6 +74,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get detailSourceMissingKey => 'Perlu kunci API';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'Diperbarui $date';
   }

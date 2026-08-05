@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/location_models.dart';
@@ -63,8 +64,24 @@ class DetailPanel extends StatelessWidget {
         return l10n.detailSourceSearch;
       case 'missing_key':
         return l10n.detailSourceMissingKey;
+      case 'link':
+        return l10n.detailSourceLink;
       default:
         return l10n.detailSourceStatic;
+    }
+  }
+
+  Future<void> _openLink(BuildContext context, String url) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final ok = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      if (!ok && context.mounted) {
+        messenger.showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.searchError)));
+      }
+    } catch (_) {
+      if (context.mounted) {
+        messenger.showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.searchError)));
+      }
     }
   }
 
@@ -121,6 +138,17 @@ class DetailPanel extends StatelessWidget {
               if (item.detail.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Text(item.detail, style: textTheme.bodyMedium),
+              ],
+              if (item.linkUrl != null) ...[
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _openLink(context, item.linkUrl!),
+                    icon: const Icon(Icons.open_in_new, size: 18),
+                    label: Text(l10n.openLink),
+                  ),
+                ),
               ],
               if (item.warning != null) ...[
                 const SizedBox(height: 16),

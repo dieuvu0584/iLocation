@@ -3,6 +3,7 @@ import '../models/settings_models.dart';
 import 'cache_service.dart';
 import 'emergency_service.dart';
 import 'llm_service.dart';
+import 'photo_link_service.dart';
 import 'places_service.dart';
 import 'timezone_service.dart';
 import 'weather_service.dart';
@@ -18,6 +19,7 @@ class OrchestratorService {
   final WeatherService _weather;
   final TimezoneService _timezone;
   final EmergencyService _emergency;
+  final PhotoLinkService _photoLinks;
   final WebSearchService _search;
   final LlmService _llm;
 
@@ -27,6 +29,7 @@ class OrchestratorService {
     WeatherService? weather,
     TimezoneService? timezone,
     EmergencyService? emergency,
+    PhotoLinkService? photoLinks,
     WebSearchService? search,
     LlmService? llm,
   })  : _cache = cache ?? CacheService(),
@@ -34,6 +37,7 @@ class OrchestratorService {
         _weather = weather ?? WeatherService(),
         _timezone = timezone ?? TimezoneService(),
         _emergency = emergency ?? EmergencyService(),
+        _photoLinks = photoLinks ?? PhotoLinkService(),
         _search = search ?? WebSearchService(),
         _llm = llm ?? LlmService();
 
@@ -54,10 +58,11 @@ class OrchestratorService {
       return _missingKeyItem(itemId, 'Weather');
     }
     try {
-      // Places/airport run on OpenStreetMap (Nominatim + Overpass) — no key needed.
+      // Places/airport/hotels run on OpenStreetMap (Nominatim + Overpass) — no key needed.
       if (itemId == 'places') return await _places.getNearbyPlaces(location.lat, location.lng);
       if (itemId == 'weather') return await _weather.getWeather(location.lat, location.lng, settings.weatherApiKey!);
       if (itemId == 'airport') return await _places.getNearestAirport(location.lat, location.lng);
+      if (itemId == 'hotels') return await _places.getNearbyHotels(location.lat, location.lng);
     } catch (_) {
       return null;
     }
@@ -120,9 +125,13 @@ class OrchestratorService {
     if (kApiItemIds.contains(itemId)) {
       fresh = await _fetchApiItem(itemId, location, settings);
     } else if (kStaticItemIds.contains(itemId)) {
-      fresh = itemId == 'emergency'
-          ? await _emergency.getEmergencyItem(location.countryCode)
-          : _timezone.getTimezoneItem(location.lat, location.lng);
+      if (itemId == 'emergency') {
+        fresh = await _emergency.getEmergencyItem(location.countryCode);
+      } else if (itemId == 'photos') {
+        fresh = _photoLinks.getPhotosItem(location.name, location.country);
+      } else {
+        fresh = _timezone.getTimezoneItem(location.lat, location.lng);
+      }
     } else {
       fresh = await _fetchLlmItem(itemId, location, settings);
     }

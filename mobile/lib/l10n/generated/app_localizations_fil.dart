@@ -74,6 +74,12 @@ class AppLocalizationsFil extends AppLocalizations {
   String get detailSourceMissingKey => 'Kailangan ng API key';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'Na-update noong $date';
   }

@@ -74,6 +74,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get detailSourceMissingKey => 'Requiere clave API';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'Actualizado $date';
   }

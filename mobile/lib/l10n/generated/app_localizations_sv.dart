@@ -74,6 +74,12 @@ class AppLocalizationsSv extends AppLocalizations {
   String get detailSourceMissingKey => 'Kräver API-nyckel';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'Uppdaterad $date';
   }

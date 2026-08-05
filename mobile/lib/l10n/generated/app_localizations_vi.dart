@@ -73,6 +73,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get detailSourceMissingKey => 'Cần thêm API key';
 
   @override
+  String get detailSourceLink => 'Liên kết ngoài';
+
+  @override
+  String get openLink => 'Mở liên kết';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'Cập nhật $date';
   }

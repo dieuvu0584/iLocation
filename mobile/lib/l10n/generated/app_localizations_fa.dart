@@ -74,6 +74,12 @@ class AppLocalizationsFa extends AppLocalizations {
   String get detailSourceMissingKey => 'نیاز به کلید API';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'به‌روزرسانی شده $date';
   }

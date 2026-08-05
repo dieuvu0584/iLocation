@@ -5,7 +5,7 @@ library;
 const List<String> kGroupIds = ['explore', 'practical', 'safety', 'culture', 'entry_stay'];
 
 const Map<String, List<String>> kChildIdsByGroup = {
-  'explore': ['places', 'food', 'best_time'],
+  'explore': ['places', 'food', 'best_time', 'hotels', 'photos'],
   'practical': ['weather', 'transport', 'power', 'currency', 'timezone'],
   'safety': ['safety_level', 'health', 'water', 'insurance', 'emergency'],
   'culture': ['language', 'etiquette', 'tipping', 'holidays'],
@@ -13,10 +13,10 @@ const Map<String, List<String>> kChildIdsByGroup = {
 };
 
 /// Items backed directly by a structured API call — never sent through the LLM.
-const Set<String> kApiItemIds = {'places', 'weather', 'airport'};
+const Set<String> kApiItemIds = {'places', 'weather', 'airport', 'hotels'};
 
 /// Items computed/looked up on-device, no network call, never sent to the LLM.
-const Set<String> kStaticItemIds = {'emergency', 'timezone'};
+const Set<String> kStaticItemIds = {'emergency', 'timezone', 'photos'};
 
 /// Everything else is LLM-summarized from web search results.
 const Set<String> kLlmItemIds = {
@@ -58,6 +58,8 @@ const Map<String, String> kChildLabels = {
   'airport': 'Nearest airport',
   'stay': 'Where to stay',
   'cost': 'Cost of living',
+  'hotels': 'Hotels',
+  'photos': 'Signature photos',
 };
 
 class LocationInfo {
@@ -154,7 +156,8 @@ class LocationSearchCandidate {
 }
 
 /// `source`: api = structured API, llm = AI-summarized, static = reference
-/// table, search = raw search results (LLM disabled).
+/// table, search = raw search results (LLM disabled), link = external
+/// link-out item (e.g. "photos" — no in-app content, just an outbound URL).
 class ChildItem {
   final String id;
   final String label;
@@ -166,6 +169,11 @@ class ChildItem {
   final bool isStale;
   final String? warning;
 
+  /// Set only for `source == 'link'` items — the URL the detail panel's
+  /// "Open" button launches via `url_launcher` instead of showing
+  /// summary/detail text as the main content.
+  final String? linkUrl;
+
   const ChildItem({
     required this.id,
     required this.label,
@@ -176,6 +184,7 @@ class ChildItem {
     required this.updatedAt,
     this.isStale = false,
     this.warning,
+    this.linkUrl,
   });
 
   factory ChildItem.fromJson(Map<String, dynamic> json) => ChildItem(
@@ -188,6 +197,7 @@ class ChildItem {
         updatedAt: DateTime.parse(json['updated_at'] as String),
         isStale: json['is_stale'] as bool? ?? false,
         warning: json['warning'] as String?,
+        linkUrl: json['link_url'] as String?,
       );
 }
 

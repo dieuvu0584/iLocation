@@ -73,6 +73,12 @@ class AppLocalizationsMs extends AppLocalizations {
   String get detailSourceMissingKey => 'Memerlukan kunci API';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'Dikemas kini $date';
   }

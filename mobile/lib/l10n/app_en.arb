@@ -25,6 +25,8 @@
   "detailSourceStatic": "Reference data",
   "detailSourceSearch": "Raw search results",
   "detailSourceMissingKey": "Needs API key",
+  "detailSourceLink": "External link",
+  "openLink": "Open link",
   "detailUpdatedAt": "Updated {date}",
   "@detailUpdatedAt": {
     "placeholders": { "date": { "type": "String" } }

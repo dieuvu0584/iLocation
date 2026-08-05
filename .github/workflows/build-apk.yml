@@ -37,6 +37,12 @@ jobs:
           sed -i 's|<manifest xmlns:android="http://schemas.android.com/apk/res/android">|<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n    <uses-permission android:name="android.permission.INTERNET"/>|' android/app/src/main/AndroidManifest.xml
           grep 'android.permission.INTERNET' android/app/src/main/AndroidManifest.xml
 
+      - name: add ACTION_VIEW query (needed for url_launcher to open https links on Android 11+)
+        run: |
+          grep -q 'android.intent.action.VIEW' android/app/src/main/AndroidManifest.xml || \
+          sed -i 's|    </queries>|        <intent>\n            <action android:name="android.intent.action.VIEW"/>\n            <data android:scheme="https"/>\n        </intent>\n    </queries>|' android/app/src/main/AndroidManifest.xml
+          grep 'android.intent.action.VIEW' android/app/src/main/AndroidManifest.xml
+
       - run: flutter pub get
 
       - run: flutter analyze

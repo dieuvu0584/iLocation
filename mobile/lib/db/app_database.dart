@@ -17,7 +17,7 @@ class AppDatabase {
     final path = join(dbPath, 'ilocation_cache.db');
     return openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE locations (
@@ -43,6 +43,7 @@ class AppDatabase {
             warning TEXT,
             updated_at TEXT NOT NULL,
             expires_at TEXT,
+            link_url TEXT,
             PRIMARY KEY (location_id, item_id)
           )
         ''');
@@ -50,6 +51,9 @@ class AppDatabase {
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           await db.execute('ALTER TABLE locations ADD COLUMN country TEXT');
+        }
+        if (oldVersion < 3) {
+          await db.execute('ALTER TABLE cache_items ADD COLUMN link_url TEXT');
         }
       },
     );

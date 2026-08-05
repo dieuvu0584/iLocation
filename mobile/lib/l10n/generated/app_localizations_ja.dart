@@ -72,6 +72,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get detailSourceMissingKey => 'APIキーが必要です';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return '$date に更新';
   }

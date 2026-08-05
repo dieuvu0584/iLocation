@@ -73,6 +73,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get detailSourceMissingKey => 'API कुंजी आवश्यक है';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'अपडेट किया गया $date';
   }

@@ -25,6 +25,8 @@
   "detailSourceStatic": "Dữ liệu tham chiếu",
   "detailSourceSearch": "Kết quả tìm kiếm thô",
   "detailSourceMissingKey": "Cần thêm API key",
+  "detailSourceLink": "Liên kết ngoài",
+  "openLink": "Mở liên kết",
   "detailUpdatedAt": "Cập nhật {date}",
   "@detailUpdatedAt": {
     "placeholders": { "date": { "type": "String" } }

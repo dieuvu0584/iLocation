@@ -23,6 +23,44 @@ production-ready dù là 1 người làm.
 
 ## Quyết định đã chốt
 
+### 2026-08-05 (đợt 5) — Node-graph: quốc gia + giãn cách + 2 mục mới (Hotels, Signature photos)
+
+Phản hồi từ ảnh chụp màn hình thiết bị thật (node-graph tier 1):
+
+- **Vòng tròn trung tâm hiện tên quốc gia** (chữ nhỏ, dưới tên địa điểm —
+  vd "Da Lat" / "Vietnam"). Lấy từ `address.country` của Nominatim (cùng
+  request với tên địa điểm/tên bản địa ở đợt 4, không tốn thêm network
+  call). Đi qua `LocationSearchCandidate.country` →
+  `LocationInfo.country` → cột `country` mới trong bảng `locations`
+  — **cần migration schema** (`AppDatabase` version 1→2). `CenterNode`
+  giờ nhận thêm `sublabel`.
+- **Giãn cách giữa các ô nhóm/mục và vòng tròn trung tâm** tăng lên (trong
+  `node_graph_screen.dart`, công thức tính `radius`) — trước đó gần như
+  chạm vào nhau, giờ có khoảng trống rõ ràng hơn.
+- **2 mục con mới trong nhóm `explore`**: `hotels` (khách sạn gần đó, API
+  Overpass `tourism=hotel/guest_house/hostel/apartment`, cùng pattern với
+  `places`/`airport`, không cần key) và `photos` ("Signature photos" — mở
+  link ảnh nổi bật của địa điểm trong trình duyệt ngoài, KHÔNG qua LLM,
+  KHÔNG cần key, chỉ dựng URL Google Images từ tên địa điểm + quốc gia).
+  `explore` giờ có 5 mục (từ 3).
+  - `photos` là loại `source` MỚI: `'link'` — `ChildItem` có thêm field
+    `linkUrl`, detail panel hiện nút "Open link" gọi `url_launcher` thay vì
+    hiện summary/detail như bình thường. Cần thêm cột `link_url` vào bảng
+    `cache_items` — **migration schema** (version 2→3).
+  - `url_launcher` cần khai báo `<queries><intent>...ACTION_VIEW...https
+    </intent></queries>` trong `AndroidManifest.xml` để mở được link trên
+    Android 11+ (package visibility) — vì `android/` không commit vào repo,
+    thêm bằng `sed` trong CI workflow, giống hệt cách vá `INTERNET`
+    permission ở đợt 4. **Nếu sau này đổi CI workflow, đừng xoá step này.**
+  - Chọn Google Images search (`google.com/search?tbm=isch&q=...`) làm
+    nguồn ảnh vì phủ toàn cầu tốt hơn Unsplash cho các địa điểm nhỏ/ít
+    tiếng — đổi provider ảnh dễ dàng (chỉ 1 URL template trong
+    `photo_link_service.dart`), không phải quyết định khó đảo ngược.
+  - `kChildLabels`/nhãn 2 mục mới vẫn là chuỗi tiếng Anh cố định, theo đúng
+    quy ước hiện có (label nhóm/mục KHÔNG chạy qua `AppLocalizations`, chỉ
+    nội dung LLM mới theo content language — xem comment trong
+    `location_models.dart`).
+
 ### 2026-08-05 (đợt 4) — Sửa lỗi thiết bị thật + UX search/timezone/tên địa điểm + đa ngôn ngữ
 
 Sau khi chủ dự án cài APK (đợt 3) lên điện thoại thật và test, phát hiện
@@ -202,12 +240,13 @@ lại để biết lý do ban đầu, đừng làm theo #4 nữa:
     /services
       cache_service.dart           # Dart port của backend/app/services/cache.py — TTL theo item
       geocode_service.dart           # OpenStreetMap Nominatim, gọi thẳng, KHÔNG cần key
-      places_service.dart              # OpenStreetMap Overpass (nearby/airport/hospital), KHÔNG cần key
+      places_service.dart              # OpenStreetMap Overpass (nearby/airport/hotels/hospital), KHÔNG cần key
       weather_service.dart               # OpenWeatherMap, gọi thẳng (BYOK)
       web_search_service.dart              # Tavily, gọi thẳng (BYOK, tuỳ chọn)
       llm_service.dart                       # Port của backend/app/services/llm.py — prompt + provider routing
       timezone_service.dart                    # offline, tính gần đúng từ kinh độ
       emergency_service.dart                     # tra bảng tĩnh, bundle JSON asset
+      photo_link_service.dart                      # dựng URL Google Images từ tên+quốc gia, KHÔNG key, KHÔNG LLM
       orchestrator_service.dart                    # Dart port của backend/app/services/orchestrator.py
       secure_storage.dart                            # API key BYOK còn lại (LLM + Weather + Search)
       settings_service.dart                            # SharedPreferences — setting không nhạy cảm

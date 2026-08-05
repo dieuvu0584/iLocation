@@ -14,9 +14,10 @@ class CacheService {
   static const Map<String, Duration?> ttlByItem = {
     // Weather: 3 hours
     'weather': Duration(hours: 3),
-    // Nearby places / airport: 30 days
+    // Nearby places / airport / hotels: 30 days
     'places': Duration(days: 30),
     'airport': Duration(days: 30),
+    'hotels': Duration(days: 30),
     // Rarely-changing content: 90 days
     'food': Duration(days: 90),
     'best_time': Duration(days: 90),
@@ -36,8 +37,9 @@ class CacheService {
     'visa': Duration(days: 14),
     'stay': Duration(days: 14),
     'cost': Duration(days: 14),
-    // Static lookup table, never expires via TTL
+    // Static lookup table / deterministic link, never expires via TTL
     'emergency': null,
+    'photos': null,
   };
 
   static const Duration _defaultTtl = Duration(days: 14);
@@ -107,6 +109,7 @@ class CacheService {
         'warning': item.warning,
         'updated_at': item.updatedAt.toIso8601String(),
         'expires_at': _expiresAt(item.id, now)?.toIso8601String(),
+        'link_url': item.linkUrl,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
@@ -125,6 +128,7 @@ class CacheService {
       warning: row['warning'] as String?,
       updatedAt: DateTime.parse(row['updated_at'] as String),
       isStale: isStale,
+      linkUrl: row['link_url'] as String?,
     );
   }
 

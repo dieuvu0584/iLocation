@@ -24,6 +24,7 @@ LocationResponse buildMockLocationResponse() {
     String detail = '',
     List<String> sources = const [],
     String? warning,
+    String? linkUrl,
   }) =>
       ChildItem(
         id: id,
@@ -34,6 +35,7 @@ LocationResponse buildMockLocationResponse() {
         sources: sources,
         updatedAt: now,
         warning: warning,
+        linkUrl: linkUrl,
       );
 
   return LocationResponse(
@@ -70,6 +72,20 @@ LocationResponse buildMockLocationResponse() {
           summary: 'December–March: dry, cool, and sunny.',
           detail: 'The dry season from December to March offers the most comfortable weather. The rainy season (June–September) brings afternoon showers but lush scenery.',
           sources: ['https://example.com/dalat-weather'],
+        ),
+        item(
+          id: 'hotels',
+          label: 'Hotels',
+          source: 'api',
+          summary: '8 hotels nearby',
+          detail: '- Ana Mandara Villas (~1.2km)\n- Dalat Palace Heritage Hotel (~1.8km)\n- Terracotta Hotel & Resort (~3.4km)',
+        ),
+        item(
+          id: 'photos',
+          label: 'Signature photos',
+          source: 'link',
+          summary: 'View iconic photos of Da Lat',
+          linkUrl: 'https://www.google.com/search?tbm=isch&q=Da+Lat+Vietnam',
         ),
       ]),
       Group(id: 'practical', label: 'Practical', children: [

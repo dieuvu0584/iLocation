@@ -74,6 +74,12 @@ class AppLocalizationsRo extends AppLocalizations {
   String get detailSourceMissingKey => 'Necesită cheie API';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'Actualizat $date';
   }

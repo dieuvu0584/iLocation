@@ -73,6 +73,12 @@ class AppLocalizationsFi extends AppLocalizations {
   String get detailSourceMissingKey => 'Vaatii API-avaimen';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'Päivitetty $date';
   }

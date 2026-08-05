@@ -74,6 +74,12 @@ class AppLocalizationsSw extends AppLocalizations {
   String get detailSourceMissingKey => 'Inahitaji ufunguo wa API';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'Imesasishwa $date';
   }

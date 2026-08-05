@@ -74,6 +74,12 @@ class AppLocalizationsEl extends AppLocalizations {
   String get detailSourceMissingKey => 'Απαιτείται κλειδί API';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'Ενημερώθηκε $date';
   }

@@ -73,6 +73,12 @@ class AppLocalizationsTh extends AppLocalizations {
   String get detailSourceMissingKey => 'ต้องใช้คีย์ API';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'อัปเดตเมื่อ $date';
   }

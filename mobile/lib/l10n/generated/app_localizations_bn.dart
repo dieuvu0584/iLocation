@@ -74,6 +74,12 @@ class AppLocalizationsBn extends AppLocalizations {
   String get detailSourceMissingKey => 'API কী প্রয়োজন';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return '$date এ আপডেট হয়েছে';
   }

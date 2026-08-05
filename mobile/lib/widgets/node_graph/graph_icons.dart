@@ -34,6 +34,8 @@ const Map<String, IconData> kChildIcons = {
   'airport': Icons.flight_outlined,
   'stay': Icons.hotel_outlined,
   'cost': Icons.savings_outlined,
+  'hotels': Icons.bed_outlined,
+  'photos': Icons.photo_library_outlined,
 };
 
 IconData iconForGroup(String groupId) => kGroupIcons[groupId] ?? Icons.circle_outlined;

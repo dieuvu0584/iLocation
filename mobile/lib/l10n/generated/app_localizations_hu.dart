@@ -73,6 +73,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get detailSourceMissingKey => 'API kulcs szükséges';
 
   @override
+  String get detailSourceLink => 'External link';
+
+  @override
+  String get openLink => 'Open link';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'Frissítve: $date';
   }

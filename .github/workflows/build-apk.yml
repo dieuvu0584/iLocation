@@ -31,6 +31,12 @@ jobs:
       - name: flutter create (scaffold android/ platform folder)
         run: flutter create --platforms=android . --org com.ilocation --project-name ilocation
 
+      - name: add INTERNET permission (missing from the default template)
+        run: |
+          grep -q 'android.permission.INTERNET' android/app/src/main/AndroidManifest.xml || \
+          sed -i 's|<manifest xmlns:android="http://schemas.android.com/apk/res/android">|<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n    <uses-permission android:name="android.permission.INTERNET"/>|' android/app/src/main/AndroidManifest.xml
+          grep 'android.permission.INTERNET' android/app/src/main/AndroidManifest.xml
+
       - run: flutter pub get
 
       - run: flutter analyze

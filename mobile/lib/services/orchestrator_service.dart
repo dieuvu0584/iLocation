@@ -149,6 +149,7 @@ class OrchestratorService {
       lat: candidate.lat,
       lng: candidate.lng,
       countryCode: candidate.countryCode,
+      country: candidate.country,
     );
     await _cache.upsertLocation(location);
 
@@ -180,6 +181,7 @@ class OrchestratorService {
       lat: candidate.lat,
       lng: candidate.lng,
       countryCode: candidate.countryCode,
+      country: candidate.country,
     );
     await _resolveItem(itemId, groupId, location, settings, true);
   }

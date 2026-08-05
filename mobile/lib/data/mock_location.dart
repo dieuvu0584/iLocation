@@ -10,6 +10,7 @@ const LocationSearchCandidate mockCandidate = LocationSearchCandidate(
   lat: 11.9404,
   lng: 108.4583,
   countryCode: 'VN',
+  country: 'Vietnam',
 );
 
 LocationResponse buildMockLocationResponse() {
@@ -36,7 +37,14 @@ LocationResponse buildMockLocationResponse() {
       );
 
   return LocationResponse(
-    location: LocationInfo(id: mockCandidate.locationId, name: mockCandidate.name, lat: mockCandidate.lat, lng: mockCandidate.lng, countryCode: mockCandidate.countryCode),
+    location: LocationInfo(
+      id: mockCandidate.locationId,
+      name: mockCandidate.name,
+      lat: mockCandidate.lat,
+      lng: mockCandidate.lng,
+      countryCode: mockCandidate.countryCode,
+      country: mockCandidate.country,
+    ),
     cachedAt: now,
     groups: [
       Group(id: 'explore', label: 'Explore', children: [

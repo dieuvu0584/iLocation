@@ -67,12 +67,19 @@ class LocationInfo {
   final double lng;
   final String? countryCode;
 
+  /// Full country name (e.g. "United States"), from Nominatim's
+  /// `address.country` — already localized to whatever `accept-language`
+  /// the search request used. Shown as the smaller sub-label under the
+  /// location name on the node-graph center node.
+  final String? country;
+
   const LocationInfo({
     required this.id,
     required this.name,
     required this.lat,
     required this.lng,
     this.countryCode,
+    this.country,
   });
 
   factory LocationInfo.fromJson(Map<String, dynamic> json) => LocationInfo(
@@ -81,6 +88,7 @@ class LocationInfo {
         lat: (json['lat'] as num).toDouble(),
         lng: (json['lng'] as num).toDouble(),
         countryCode: json['country_code'] as String?,
+        country: json['country'] as String?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -89,6 +97,7 @@ class LocationInfo {
         'lat': lat,
         'lng': lng,
         'country_code': countryCode,
+        'country': country,
       };
 }
 
@@ -106,6 +115,10 @@ class LocationSearchCandidate {
   /// when there's nothing distinct to show (see `geocode_service.dart`).
   final String? localName;
 
+  /// Full country name from Nominatim's `address.country` — see
+  /// `LocationInfo.country`.
+  final String? country;
+
   const LocationSearchCandidate({
     required this.locationId,
     required this.name,
@@ -114,6 +127,7 @@ class LocationSearchCandidate {
     required this.lng,
     this.countryCode,
     this.localName,
+    this.country,
   });
 
   factory LocationSearchCandidate.fromJson(Map<String, dynamic> json) => LocationSearchCandidate(
@@ -124,6 +138,7 @@ class LocationSearchCandidate {
         lng: (json['lng'] as num).toDouble(),
         countryCode: json['country_code'] as String?,
         localName: json['local_name'] as String?,
+        country: json['country'] as String?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -134,6 +149,7 @@ class LocationSearchCandidate {
         'lng': lng,
         'country_code': countryCode,
         'local_name': localName,
+        'country': country,
       };
 }
 

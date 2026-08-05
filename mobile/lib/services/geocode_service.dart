@@ -57,6 +57,7 @@ class GeocodeService {
           ? result['name'] as String
           : displayName.split(',').first.trim();
       final countryCode = (address['country_code'] as String?)?.toUpperCase();
+      final country = address['country'] as String?;
       final nativeName = namedetails['name'] as String?;
       final localName = (nativeName != null && nativeName.isNotEmpty && nativeName != name) ? nativeName : null;
 
@@ -66,6 +67,7 @@ class GeocodeService {
         formattedAddress: displayName,
         lat: lat,
         lng: lng,
+        country: country,
         countryCode: countryCode,
         localName: localName,
       );

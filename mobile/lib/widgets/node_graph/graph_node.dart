@@ -9,6 +9,7 @@ import '../../theme/colors.dart';
 /// every node in the graph animates off one ticker instead of many.
 class CenterNode extends StatelessWidget {
   final String label;
+  final String? sublabel;
   final Animation<double> animation;
   final bool reducedMotion;
   final VoidCallback? onTap;
@@ -16,6 +17,7 @@ class CenterNode extends StatelessWidget {
   const CenterNode({
     super.key,
     required this.label,
+    this.sublabel,
     required this.animation,
     required this.reducedMotion,
     this.onTap,
@@ -71,15 +73,32 @@ class CenterNode extends StatelessWidget {
                     child: Center(
                       child: Padding(
                         padding: const EdgeInsets.all(14),
-                        child: Text(
-                          label,
-                          textAlign: TextAlign.center,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(color: AppColors.bgDark, fontWeight: FontWeight.w700),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              label,
+                              textAlign: TextAlign.center,
+                              maxLines: sublabel == null ? 3 : 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(color: AppColors.bgDark, fontWeight: FontWeight.w700),
+                            ),
+                            if (sublabel != null) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                sublabel!,
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                      color: AppColors.bgDark.withValues(alpha: 0.7),
+                                    ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     ),

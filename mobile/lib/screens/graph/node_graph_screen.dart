@@ -120,18 +120,21 @@ class _NodeGraphScreenState extends State<NodeGraphScreen> with SingleTickerProv
         return LayoutBuilder(
           builder: (context, constraints) {
             final size = constraints.biggest;
-            final radius = (size.shortestSide / 2 - 70).clamp(90.0, 170.0);
+            final radius = (size.shortestSide / 2 - 56).clamp(112.0, 190.0);
 
             final List<_NodeSpec> ringSpecs;
             final String centerLabel;
+            final String? centerSublabel;
             if (_activeGroupId == null) {
               centerLabel = response.location.name;
+              centerSublabel = response.location.country;
               ringSpecs = response.groups
                   .map((g) => _NodeSpec(id: g.id, label: g.label, icon: iconForGroup(g.id), item: null))
                   .toList();
             } else {
               final group = response.groupById(_activeGroupId!);
               centerLabel = group?.label ?? '';
+              centerSublabel = null;
               ringSpecs = (group?.children ?? [])
                   .map((c) => _NodeSpec(id: c.id, label: c.label, icon: iconForChild(c.id), item: c))
                   .toList();
@@ -178,6 +181,7 @@ class _NodeGraphScreenState extends State<NodeGraphScreen> with SingleTickerProv
                       ),
                     CenterNode(
                       label: centerLabel,
+                      sublabel: centerSublabel,
                       animation: _ambientController,
                       reducedMotion: reducedMotion,
                       onTap: _activeGroupId == null ? null : _backToTier1,

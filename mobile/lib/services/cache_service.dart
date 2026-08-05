@@ -68,6 +68,7 @@ class CacheService {
         'lat': location.lat,
         'lng': location.lng,
         'country_code': location.countryCode,
+        'country': location.country,
         'created_at': DateTime.now().toUtc().toIso8601String(),
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
@@ -85,6 +86,7 @@ class CacheService {
       lat: row['lat'] as double,
       lng: row['lng'] as double,
       countryCode: row['country_code'] as String?,
+      country: row['country'] as String?,
     );
   }
 

@@ -100,6 +100,12 @@ class LocationSearchCandidate {
   final double lng;
   final String? countryCode;
 
+  /// The place's native/local-language name from OpenStreetMap
+  /// (`namedetails.name`), only set when it differs from [name] — i.e. when
+  /// [name] came back translated into the requested `accept-language`. Null
+  /// when there's nothing distinct to show (see `geocode_service.dart`).
+  final String? localName;
+
   const LocationSearchCandidate({
     required this.locationId,
     required this.name,
@@ -107,6 +113,7 @@ class LocationSearchCandidate {
     required this.lat,
     required this.lng,
     this.countryCode,
+    this.localName,
   });
 
   factory LocationSearchCandidate.fromJson(Map<String, dynamic> json) => LocationSearchCandidate(
@@ -116,6 +123,7 @@ class LocationSearchCandidate {
         lat: (json['lat'] as num).toDouble(),
         lng: (json['lng'] as num).toDouble(),
         countryCode: json['country_code'] as String?,
+        localName: json['local_name'] as String?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -125,6 +133,7 @@ class LocationSearchCandidate {
         'lat': lat,
         'lng': lng,
         'country_code': countryCode,
+        'local_name': localName,
       };
 }
 

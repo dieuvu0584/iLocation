@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -7,6 +9,7 @@ import '../../services/geocode_service.dart';
 import '../../services/history_service.dart';
 import '../../state/location_provider.dart';
 import '../../theme/colors.dart';
+import '../../widgets/common/candidate_title.dart';
 import '../graph/node_graph_screen.dart';
 import '../history/history_screen.dart';
 import '../settings/settings_home_screen.dart';
@@ -24,29 +27,55 @@ class SearchScreen extends StatefulWidget {
 enum _SearchStatus { idle, loading, error }
 
 class _SearchScreenState extends State<SearchScreen> {
+  static const _debounceDelay = Duration(milliseconds: 700);
+  static const _minLiveQueryLength = 2;
+
   final _controller = TextEditingController();
   _SearchStatus _status = _SearchStatus.idle;
   List<LocationSearchCandidate> _results = [];
   String? _error;
+  Timer? _debounce;
+  int _searchSeq = 0;
+
+  /// Nominatim's usage policy caps a single app at ~1 request/second
+  /// (CLAUDE.md, geocode_service.dart). Live suggestions debounce on pause
+  /// in typing rather than firing per keystroke, so that cap holds in
+  /// practice while still not requiring the user to tap search.
+  void _onQueryChanged(String value) {
+    _debounce?.cancel();
+    final query = value.trim();
+    if (query.length < _minLiveQueryLength) {
+      setState(() {
+        _results = [];
+        _status = _SearchStatus.idle;
+        _error = null;
+      });
+      return;
+    }
+    _debounce = Timer(_debounceDelay, _search);
+  }
 
   Future<void> _search() async {
+    _debounce?.cancel();
     final query = _controller.text.trim();
     if (query.isEmpty) return;
+    final seq = ++_searchSeq;
     setState(() {
       _status = _SearchStatus.loading;
       _error = null;
     });
 
     final geocodeService = context.read<GeocodeService>();
+    final acceptLanguage = Localizations.localeOf(context).languageCode;
     try {
-      final results = await geocodeService.searchCandidates(query);
-      if (!mounted) return;
+      final results = await geocodeService.searchCandidates(query, acceptLanguage: acceptLanguage);
+      if (!mounted || seq != _searchSeq) return;
       setState(() {
         _results = results;
         _status = _SearchStatus.idle;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || seq != _searchSeq) return;
       setState(() {
         _error = e.toString();
         _status = _SearchStatus.error;
@@ -66,6 +95,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -103,6 +133,7 @@ class _SearchScreenState extends State<SearchScreen> {
               TextField(
                 controller: _controller,
                 textInputAction: TextInputAction.search,
+                onChanged: _onQueryChanged,
                 onSubmitted: (_) => _search(),
                 decoration: InputDecoration(
                   hintText: l10n.searchHint,
@@ -135,7 +166,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   (c) => Card(
                     child: ListTile(
                       leading: const Icon(Icons.place_outlined, color: AppColors.accentAmber),
-                      title: Text(c.name),
+                      title: CandidateTitle(name: c.name, localName: c.localName),
                       subtitle: Text(c.formattedAddress, style: const TextStyle(color: AppColors.textMuted)),
                       onTap: () => _openCandidate(c),
                     ),
@@ -149,7 +180,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   (h) => Card(
                     child: ListTile(
                       leading: const Icon(Icons.history, color: AppColors.textSecondary),
-                      title: Text(h.candidate.name),
+                      title: CandidateTitle(name: h.candidate.name, localName: h.candidate.localName),
                       subtitle: Text(h.candidate.formattedAddress, style: const TextStyle(color: AppColors.textMuted)),
                       onTap: () => _openCandidate(h.candidate),
                     ),

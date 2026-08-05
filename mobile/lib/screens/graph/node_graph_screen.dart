@@ -52,12 +52,15 @@ class _NodeGraphScreenState extends State<NodeGraphScreen> with SingleTickerProv
   Future<void> _openDetail(BuildContext context, ChildItem item) async {
     final locationProvider = context.read<LocationProvider>();
     final showSources = context.read<AppSettings>().showSources;
+    final candidate = locationProvider.candidate;
     await DetailPanel.show(
       context,
       item: item,
       showSources: showSources,
       isRefreshing: locationProvider.refreshingItemIds.contains(item.id),
       onRefresh: () => locationProvider.refreshItem(item.id),
+      locationLat: candidate?.lat,
+      locationLng: candidate?.lng,
     );
   }
 

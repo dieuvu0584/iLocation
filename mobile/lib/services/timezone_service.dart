@@ -6,8 +6,13 @@ import '../models/location_models.dart';
 /// of longitude, no DST, no real IANA zone name. Good enough for "roughly
 /// what time is it there," not for anything precise.
 class TimezoneService {
+  /// Shared with the UI (`detail_panel.dart`) so the live local-time display
+  /// uses the exact same estimate as the cached summary, without baking a
+  /// timestamp into cached text that would go stale for up to 90 days.
+  static int estimateOffsetHours(double lat, double lng) => (lng / 15).round().clamp(-12, 14);
+
   ChildItem getTimezoneItem(double lat, double lng) {
-    final offsetHours = (lng / 15).round().clamp(-12, 14);
+    final offsetHours = estimateOffsetHours(lat, lng);
     final sign = offsetHours >= 0 ? '+' : '-';
     final offsetLabel = 'UTC$sign${offsetHours.abs().toString().padLeft(2, '0')}:00';
 

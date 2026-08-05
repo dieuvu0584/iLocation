@@ -6,6 +6,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../services/history_service.dart';
 import '../../state/location_provider.dart';
 import '../../theme/colors.dart';
+import '../../widgets/common/candidate_title.dart';
 import '../graph/node_graph_screen.dart';
 
 /// Simple, functional recent-locations list (SDD §10 — no formal spec
@@ -84,7 +85,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             child: Card(
                               child: ListTile(
                                 leading: const Icon(Icons.place_outlined, color: AppColors.accentAmber),
-                                title: Text(entry.candidate.name),
+                                title: CandidateTitle(name: entry.candidate.name, localName: entry.candidate.localName),
                                 subtitle: Text(
                                   '${entry.candidate.formattedAddress} · ${DateFormat.yMMMd().format(entry.viewedAt)}',
                                   style: const TextStyle(color: AppColors.textMuted),

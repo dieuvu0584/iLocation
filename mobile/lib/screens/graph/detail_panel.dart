@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import '../../models/location_models.dart';
+import '../../services/timezone_service.dart';
 import '../../theme/colors.dart';
 
 /// Slide-up panel shown when a leaf node is tapped (SDD §6). Shows the
@@ -13,6 +16,8 @@ class DetailPanel extends StatelessWidget {
   final bool showSources;
   final bool isRefreshing;
   final VoidCallback onRefresh;
+  final double? locationLat;
+  final double? locationLng;
 
   const DetailPanel({
     super.key,
@@ -20,6 +25,8 @@ class DetailPanel extends StatelessWidget {
     required this.showSources,
     required this.isRefreshing,
     required this.onRefresh,
+    this.locationLat,
+    this.locationLng,
   });
 
   static Future<void> show(
@@ -28,6 +35,8 @@ class DetailPanel extends StatelessWidget {
     required bool showSources,
     required bool isRefreshing,
     required VoidCallback onRefresh,
+    double? locationLat,
+    double? locationLng,
   }) {
     return showModalBottomSheet(
       context: context,
@@ -38,6 +47,8 @@ class DetailPanel extends StatelessWidget {
         showSources: showSources,
         isRefreshing: isRefreshing,
         onRefresh: onRefresh,
+        locationLat: locationLat,
+        locationLng: locationLng,
       ),
     );
   }
@@ -102,6 +113,10 @@ class DetailPanel extends StatelessWidget {
               const SizedBox(height: 4),
               _SourceBadge(label: _sourceLabel(l10n)),
               const SizedBox(height: 16),
+              if (item.id == 'timezone' && locationLat != null && locationLng != null) ...[
+                _LiveLocalClock(lat: locationLat!, lng: locationLng!),
+                const SizedBox(height: 12),
+              ],
               Text(item.summary, style: textTheme.titleMedium),
               if (item.detail.isNotEmpty) ...[
                 const SizedBox(height: 12),
@@ -140,6 +155,60 @@ class DetailPanel extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Shows the estimated current date/time at the location, computed live
+/// from the same offset `TimezoneService` caches — never baked into cached
+/// text, so it stays accurate no matter how long the cached summary lives.
+class _LiveLocalClock extends StatefulWidget {
+  final double lat;
+  final double lng;
+  const _LiveLocalClock({required this.lat, required this.lng});
+
+  @override
+  State<_LiveLocalClock> createState() => _LiveLocalClockState();
+}
+
+class _LiveLocalClockState extends State<_LiveLocalClock> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final offsetHours = TimezoneService.estimateOffsetHours(widget.lat, widget.lng);
+    final localNow = DateTime.now().toUtc().add(Duration(hours: offsetHours));
+    final locale = Localizations.localeOf(context).toString();
+    final formatted = DateFormat.yMMMMEEEEd(locale).add_Hm().format(localNow);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.cardBg1,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderColor),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.schedule, color: AppColors.accentAmber, size: 18),
+          const SizedBox(width: 8),
+          Expanded(child: Text(formatted, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600))),
+        ],
+      ),
     );
   }
 }

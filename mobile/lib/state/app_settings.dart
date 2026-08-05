@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/locale_codes.dart';
 import '../models/settings_models.dart';
 import '../services/secure_storage.dart';
 import '../services/settings_service.dart';
@@ -22,11 +23,11 @@ class AppSettings extends ChangeNotifier {
 
   Locale? get uiLocale {
     final code = _settings.uiLocale;
-    return code == null ? null : Locale(code);
+    return code == null ? null : localeFromCode(code);
   }
 
   Future<void> setUiLocale(Locale? locale) async {
-    await _settings.setUiLocale(locale?.languageCode);
+    await _settings.setUiLocale(locale == null ? null : localeToCode(locale));
     notifyListeners();
   }
 

@@ -2,13 +2,57 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/generated/app_localizations.dart';
+import '../../l10n/locale_codes.dart';
 import '../../models/settings_models.dart';
 import '../../state/app_settings.dart';
 import '../../theme/colors.dart';
 import '../../widgets/common/settings_scaffold.dart';
 
-const _kSupportedUiLocales = {'en': 'English', 'vi': 'Tiếng Việt'};
-const _kSupportedContentLanguages = {'en': 'English', 'vi': 'Tiếng Việt'};
+/// ~35 popular world languages (2026-08-05). Each has an `app_<code>.arb`
+/// file under `lib/l10n/`; languages without full translations yet simply
+/// fall back to English per-string, since `AppLocalizations<Code>` extends
+/// the English base class and only overrides the keys it has (Dart/Flutter
+/// gen-l10n behavior — see the generated classes in `lib/l10n/generated/`).
+/// Content language reuses the same list — the LLM can write in any of
+/// these regardless of ARB completeness.
+const _kSupportedUiLocales = {
+  'en': 'English',
+  'vi': 'Tiếng Việt',
+  'fr': 'Français',
+  'es': 'Español',
+  'de': 'Deutsch',
+  'pt': 'Português',
+  'it': 'Italiano',
+  'nl': 'Nederlands',
+  'ru': 'Русский',
+  'pl': 'Polski',
+  'tr': 'Türkçe',
+  'ar': 'العربية',
+  'hi': 'हिन्दी',
+  'bn': 'বাংলা',
+  'ur': 'اردو',
+  'fa': 'فارسی',
+  'id': 'Bahasa Indonesia',
+  'ms': 'Bahasa Melayu',
+  'th': 'ไทย',
+  'ja': '日本語',
+  'ko': '한국어',
+  'zh': '中文（简体）',
+  'zh_Hant': '中文（繁體）',
+  'fil': 'Filipino',
+  'sv': 'Svenska',
+  'nb': 'Norsk bokmål',
+  'da': 'Dansk',
+  'fi': 'Suomi',
+  'el': 'Ελληνικά',
+  'he': 'עברית',
+  'cs': 'Čeština',
+  'ro': 'Română',
+  'hu': 'Magyar',
+  'uk': 'Українська',
+  'sw': 'Kiswahili',
+};
+const _kSupportedContentLanguages = _kSupportedUiLocales;
 
 /// SDD §7.1: UI language and content language are two independent settings
 /// — don't let one imply the other.
@@ -29,12 +73,12 @@ class LanguageSettingsScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: _Dropdown<String?>(
-              value: appSettings.uiLocale?.languageCode,
+              value: appSettings.uiLocale == null ? null : localeToCode(appSettings.uiLocale!),
               items: [
                 DropdownMenuItem(value: null, child: Text(l10n.systemDefault)),
                 ..._kSupportedUiLocales.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value))),
               ],
-              onChanged: (value) => appSettings.setUiLocale(value == null ? null : Locale(value)),
+              onChanged: (value) => appSettings.setUiLocale(value == null ? null : localeFromCode(value)),
             ),
           ),
           SettingsSectionLabel(l10n.contentLanguage),

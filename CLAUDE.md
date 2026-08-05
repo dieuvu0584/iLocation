@@ -23,6 +23,59 @@ production-ready dù là 1 người làm.
 
 ## Quyết định đã chốt
 
+### 2026-08-05 (đợt 4) — Sửa lỗi thiết bị thật + UX search/timezone/tên địa điểm + đa ngôn ngữ
+
+Sau khi chủ dự án cài APK (đợt 3) lên điện thoại thật và test, phát hiện
+hàng loạt lỗi thật + yêu cầu UX mới. Tất cả đã sửa/triển khai trong đợt này:
+
+- **Lỗi gốc của MỌI lỗi mạng từ trước tới giờ**: `AndroidManifest.xml` do
+  `flutter create` sinh ra (Flutter 3.44.8) **thiếu hẳn**
+  `<uses-permission android:name="android.permission.INTERNET"/>`. Vì
+  `android/` không commit vào repo (bị `.gitignore`, CI tự sinh lại mỗi lần
+  build qua `flutter create`), permission này chưa từng có trong bất kỳ APK
+  nào từng gửi cho chủ dự án — giải thích tại sao Nominatim/Weather/LLM đều
+  lỗi "Failed host lookup" dù trình duyệt điện thoại vẫn vào mạng bình
+  thường (browser là app khác, quyền khác). Sửa bằng cách thêm 1 step `sed`
+  trong `.github/workflows/build-apk.yml` ngay sau step `flutter create`,
+  chèn permission vào `AndroidManifest.xml` trước khi build. **Đây là fix
+  quan trọng nhất trong đợt này — nếu sau này đổi CI workflow, đừng xoá
+  step này.**
+- **Bug cache "cần thêm API key" bị kẹt vĩnh viễn**: `CacheService.getItem()`
+  áp TTL bình thường (14–90 ngày) luôn cho cả item có `source == 'missing_key'`
+  — nghĩa là 1 mục đã xem trước khi thêm API key sẽ tiếp tục hiển thị "cần
+  thêm API key" hàng tuần sau khi key đã lưu đúng, vì cache vẫn coi là
+  "còn hạn". Sửa: `getItem()` giờ luôn coi `missing_key` là hết hạn, tự
+  retry ở lần load tiếp theo (không tốn network call nếu vẫn chưa có key).
+- **Timezone hiển thị giờ/ngày hiện tại**: `detail_panel.dart` thêm
+  `_LiveLocalClock` — tính giờ địa phương từ offset (dùng lại
+  `TimezoneService.estimateOffsetHours`) **tại thời điểm render**, KHÔNG
+  bake vào text cache (vì mục timezone cache 90 ngày, bake giờ vào đó sẽ
+  sai ngay lập tức). Tự cập nhật mỗi 30 giây khi panel còn mở.
+- **Search gợi ý trực tiếp khi gõ**: `search_screen.dart` debounce 700ms
+  sau khi ngừng gõ (không phải mỗi keystroke) để vẫn tôn trọng giới hạn
+  ~1 request/giây của Nominatim, kèm sequence counter chống race condition
+  (kết quả cũ trả về sau đè lên kết quả mới).
+- **Tên địa điểm theo ngôn ngữ máy + tên bản địa**: `geocode_service.dart`
+  giờ gọi Nominatim với `accept-language` (theo locale hiện tại của app) +
+  `namedetails=1`. `LocationSearchCandidate.localName` lưu tên bản địa
+  (native name) khi khác tên đã dịch — hiển thị dạng "Seoul (서울특별시)"
+  trong search results + history list (widget dùng chung
+  `widgets/common/candidate_title.dart`).
+- **Mở rộng ~35 ngôn ngữ App/Content language**: thêm 33 file
+  `lib/l10n/app_<code>.arb` (trước chỉ có `en`, `vi`). Ngôn ngữ nào chưa
+  dịch đủ tự động fallback về tiếng Anh theo từng chuỗi — đây là hành vi
+  sẵn có của Flutter gen-l10n (class `AppLocalizations<Code>` kế thừa class
+  tiếng Anh, chỉ override key nào có trong ARB), **không cần code thêm gì**
+  để có fallback, chỉ cần thêm file ARB. Đã dịch đầy đủ cả 35/35 ngôn ngữ
+  trong đợt này (không có ngôn ngữ nào chỉ có fallback rỗng). Chú ý:
+  `zh_Hant` (Trung phồn thể) dùng script code, không phải country code —
+  `Locale('zh_Hant')` thường KHÔNG parse đúng, phải dùng
+  `Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant')`. Xem helper
+  `lib/l10n/locale_codes.dart` (`localeFromCode`/`localeToCode`) — dùng
+  helper này ở MỌI chỗ chuyển đổi giữa mã locale dạng string (lưu trong
+  SharedPreferences, dùng làm key dropdown) và `Locale` object, đừng gọi
+  `Locale(code)` trực tiếp nữa.
+
 ### 2026-08-04 (đợt 3) — Đổi Places/Geocoding sang OpenStreetMap, bỏ Google
 
 Chủ dự án hỏi có cách nào miễn phí hơn cho Places/Geocoding không, không
@@ -31,8 +84,9 @@ toán dù có $200/tháng miễn phí). Đã đổi sang **OpenStreetMap**:
 
 - **Geocoding/search**: Nominatim (`nominatim.openstreetmap.org`) — miễn
   phí, KHÔNG cần API key. Chỉ cần header `User-Agent` định danh app và giới
-  hạn ~1 request/giây (app chỉ gọi khi user bấm search, không phải mỗi lần
-  gõ phím, nên tự nhiên đã tuân thủ). Xem `mobile/lib/services/geocode_service.dart`.
+  hạn ~1 request/giây — từ đợt 4, search gợi ý trực tiếp khi gõ (debounce
+  700ms, xem đợt 4), không còn "chỉ gọi khi bấm search" như mô tả ban đầu ở
+  đây. Xem `mobile/lib/services/geocode_service.dart`.
 - **Nearby places / airport / hospital**: Overpass API
   (`overpass-api.de/api/interpreter`) — miễn phí, KHÔNG cần API key. Dùng
   Overpass QL query theo bán kính (`around:RADIUS,LAT,LNG`), rồi tự sort
@@ -244,8 +298,20 @@ const borderColor = Color(0xFF2A4356);
       `flutter build linux`/`flutter build web`/`flutter build apk` (qua
       GitHub Actions CI, môi trường build sandbox không có Android SDK khả
       dụng — xem `.github/workflows/build-apk.yml`).
-- [ ] Test trên thiết bị thật với API key thật (OpenWeatherMap, Tavily, và
-      1 provider LLM) — môi trường build chưa có key nào để test end-to-end.
+- [x] Sửa lỗi thiết bị thật: thiếu `INTERNET` permission trong
+      `AndroidManifest.xml` (nguyên nhân gốc mọi lỗi mạng từ trước tới giờ),
+      cache "cần thêm API key" bị kẹt vĩnh viễn — cả 2 xác nhận qua test
+      trên điện thoại thật của chủ dự án (đợt 4).
+- [x] Timezone hiển thị giờ/ngày hiện tại (live, không cache), search gợi ý
+      trực tiếp khi gõ (debounce), tên địa điểm theo ngôn ngữ máy + tên bản
+      địa (đợt 4).
+- [x] Mở rộng App/Content language lên ~35 ngôn ngữ phổ biến, dịch đầy đủ
+      cả 35 (đợt 4) — ngôn ngữ thêm sau này chỉ cần 1 file ARB, tự fallback
+      tiếng Anh cho key chưa dịch.
+- [ ] Test trên thiết bị thật với API key thật cho toàn bộ pipeline
+      (OpenWeatherMap, Tavily, 1 provider LLM, và giờ cả các ngôn ngữ mới) —
+      môi trường build chưa có key nào để test end-to-end, và chỉ có phản
+      hồi thực tế từ chủ dự án cho tiếng Việt + tiếng Anh tính đến nay.
       Nominatim/Overpass đã xác nhận code đúng nhưng không test sống được từ
       sandbox build (network policy của sandbox chặn cả 2 host này, không
       liên quan tới điện thoại thật của user).

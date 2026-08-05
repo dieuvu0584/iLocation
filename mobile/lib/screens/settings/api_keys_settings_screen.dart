@@ -4,7 +4,11 @@ import 'package:provider/provider.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../state/app_settings.dart';
 import '../../theme/colors.dart';
+import '../../widgets/common/get_api_key_link.dart';
 import '../../widgets/common/settings_scaffold.dart';
+
+const _kOpenWeatherMapKeyUrl = 'https://home.openweathermap.org/api_keys';
+const _kTavilyKeyUrl = 'https://app.tavily.com/home';
 
 /// Weather and Search are BYOK — there's no backend to hold a shared key
 /// (CLAUDE.md "Quyết định đã chốt 2026-08-04 (đợt 2)"). Places/Geocoding
@@ -87,6 +91,7 @@ class _ApiKeysSettingsScreenState extends State<ApiKeysSettingsScreen> {
             controller: _weatherController,
             enabled: _loaded,
             onSave: (v) => _save(appSettings.setWeatherApiKey, v),
+            signupUrl: _kOpenWeatherMapKeyUrl,
           ),
           _ApiKeyField(
             label: l10n.searchApiKeyLabel,
@@ -94,6 +99,7 @@ class _ApiKeysSettingsScreenState extends State<ApiKeysSettingsScreen> {
             controller: _searchController,
             enabled: _loaded,
             onSave: (v) => _save(appSettings.setSearchApiKey, v),
+            signupUrl: _kTavilyKeyUrl,
           ),
           const SizedBox(height: 24),
         ],
@@ -108,6 +114,7 @@ class _ApiKeyField extends StatelessWidget {
   final TextEditingController controller;
   final bool enabled;
   final ValueChanged<String> onSave;
+  final String signupUrl;
 
   const _ApiKeyField({
     required this.label,
@@ -115,6 +122,7 @@ class _ApiKeyField extends StatelessWidget {
     required this.controller,
     required this.enabled,
     required this.onSave,
+    required this.signupUrl,
   });
 
   @override
@@ -141,6 +149,10 @@ class _ApiKeyField extends StatelessWidget {
             ),
             onSubmitted: onSave,
           ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+          child: GetApiKeyLink(url: signupUrl),
         ),
       ],
     );

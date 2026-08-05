@@ -80,6 +80,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get openLink => 'Open link';
 
   @override
+  String get getApiKeyLink => 'Get an API key';
+
+  @override
   String detailUpdatedAt(String date) {
     return 'Bijgewerkt $date';
   }

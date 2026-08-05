@@ -78,6 +78,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get openLink => 'Open link';
 
   @override
+  String get getApiKeyLink => 'Get an API key';
+
+  @override
   String detailUpdatedAt(String date) {
     return '$date에 업데이트됨';
   }

@@ -301,6 +301,12 @@ abstract class AppLocalizations {
   /// **'Open link'**
   String get openLink;
 
+  /// No description provided for @getApiKeyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Get an API key'**
+  String get getApiKeyLink;
+
   /// No description provided for @detailUpdatedAt.
   ///
   /// In en, this message translates to:

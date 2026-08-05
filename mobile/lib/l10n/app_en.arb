@@ -27,6 +27,7 @@
   "detailSourceMissingKey": "Needs API key",
   "detailSourceLink": "External link",
   "openLink": "Open link",
+  "getApiKeyLink": "Get an API key",
   "detailUpdatedAt": "Updated {date}",
   "@detailUpdatedAt": {
     "placeholders": { "date": { "type": "String" } }

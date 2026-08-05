@@ -27,6 +27,7 @@
   "detailSourceMissingKey": "Cần thêm API key",
   "detailSourceLink": "Liên kết ngoài",
   "openLink": "Mở liên kết",
+  "getApiKeyLink": "Lấy API key",
   "detailUpdatedAt": "Cập nhật {date}",
   "@detailUpdatedAt": {
     "placeholders": { "date": { "type": "String" } }

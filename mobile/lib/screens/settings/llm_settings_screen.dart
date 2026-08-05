@@ -5,7 +5,21 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../models/settings_models.dart';
 import '../../state/app_settings.dart';
 import '../../theme/colors.dart';
+import '../../widgets/common/get_api_key_link.dart';
 import '../../widgets/common/settings_scaffold.dart';
+
+String _keyUrlFor(ByokProvider p) {
+  switch (p) {
+    case ByokProvider.gemini:
+      return 'https://aistudio.google.com/apikey';
+    case ByokProvider.groq:
+      return 'https://console.groq.com/keys';
+    case ByokProvider.openrouter:
+      return 'https://openrouter.ai/keys';
+    case ByokProvider.openai:
+      return 'https://platform.openai.com/api-keys';
+  }
+}
 
 /// Every provider is BYOK now (CLAUDE.md "Quyết định đã chốt 2026-08-04
 /// (đợt 2)") — no more free tier/fallback, since there's no backend to hold
@@ -110,6 +124,10 @@ class _LlmSettingsScreenState extends State<LlmSettingsScreen> {
                   ),
                 ),
               ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+              child: GetApiKeyLink(url: _keyUrlFor(appSettings.llmProvider)),
             ),
             SettingsSectionLabel(l10n.detailLevel),
             Padding(

@@ -23,6 +23,39 @@ production-ready dù là 1 người làm.
 
 ## Quyết định đã chốt
 
+### 2026-08-05 (đợt 7) — Sửa bug cỡ chữ (Font size) trong Settings không có tác dụng
+
+Chủ dự án báo kéo thanh trượt "Font size" lên max nhưng không thấy chữ đổi
+gì cả. Tái hiện được bằng build Linux desktop thật + so sánh ảnh chụp
+pixel-by-pixel (`compare -metric AE`) — xác nhận đúng: KHÔNG có bất kỳ chữ
+nào trên toàn app đổi kích thước, dù giá trị `fontScale` trong state đã đổi
+đúng (Slider di chuyển đúng vị trí).
+
+- **Nguyên nhân gốc**: `AppTypography.textTheme()` (`lib/theme/typography.dart`)
+  gọi `GoogleFonts.interTextTheme()` / `GoogleFonts.frauncesTextTheme()`
+  **không truyền tham số base** — cách gọi này trả về `TextTheme` có
+  `fontSize` là `null` cho MỌI style (chỉ style/font-family được set, không
+  phải cỡ chữ). `.apply(fontSizeFactor: fontScale)` gọi sau đó vì vậy không
+  có gì để nhân — mọi widget Text sau đó âm thầm rơi về cỡ chữ mặc định
+  built-in của Flutter (không liên quan gì tới `fontScale`), nên slider kéo
+  gì cũng vô tác dụng.
+- **Đã thử 2 cách "hiển nhiên đúng" nhưng KHÔNG hoạt động** — ghi lại để
+  không lặp lại sai lầm tương tự: dùng `ThemeData(...).textTheme` làm base,
+  và dùng `Typography.material2021().white` làm base — cả 2 đều VẪN trả về
+  `fontSize` null khi gọi ngoài 1 cây widget đã render đầy đủ (khác với kỳ
+  vọng thông thường). Debug bằng cách build 1 app Flutter tối giản riêng
+  (không qua Provider/Settings) in trực tiếp `textTheme.headlineSmall
+  ?.fontSize` ra console mới lộ ra được `null` ở TẤT CẢ các cách thử.
+- **Fix**: định nghĩa cứng 1 `TextTheme` cụ thể (`_fallbackSizes` trong
+  `typography.dart`) với `fontSize` số thực cho từng style (theo chuẩn
+  Material 3: displayLarge=57, ..., labelSmall=11), dùng làm base truyền
+  vào `GoogleFonts.interTextTheme(_fallbackSizes)` /
+  `frauncesTextTheme(_fallbackSizes)`. Đã verify lại bằng build thật +
+  chụp ảnh so sánh: chữ toàn app giờ đổi cỡ đúng theo slider. **Nếu sau
+  này đổi bộ font/thêm text style mới, đừng gọi `GoogleFonts.xTextTheme()`
+  trực tiếp không tham số — luôn truyền `_fallbackSizes` (hoặc 1 TextTheme
+  cụ thể khác có đủ `fontSize`) làm base.**
+
 ### 2026-08-05 (đợt 6) — Node hình tròn, bỏ nút demo, sửa bug Hotels không ra dữ liệu
 
 Phản hồi tiếp theo từ thiết bị thật sau đợt 5 (screenshot node-graph +

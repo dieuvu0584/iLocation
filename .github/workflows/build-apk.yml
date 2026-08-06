@@ -43,6 +43,28 @@ jobs:
           sed -i 's|    </queries>|        <intent>\n            <action android:name="android.intent.action.VIEW"/>\n            <data android:scheme="https"/>\n        </intent>\n    </queries>|' android/app/src/main/AndroidManifest.xml
           grep 'android.intent.action.VIEW' android/app/src/main/AndroidManifest.xml
 
+      # Firebase Remote Config (đợt 8, CLAUDE.md) supplies app-owned default
+      # Weather/Tavily/Groq keys so the app works without the user entering
+      # their own BYOK key. Entirely optional: `android/` isn't committed
+      # (regenerated above), so google-services.json can't live in the repo
+      # either — it's injected here from a GitHub Actions secret. Without
+      # the secret these two steps are skipped and the build proceeds
+      # exactly as before this feature existed (pure BYOK, no Firebase).
+      - name: write google-services.json from secret (Firebase Remote Config — skipped if secret not set)
+        if: ${{ secrets.GOOGLE_SERVICES_JSON_B64 != '' }}
+        run: echo "${{ secrets.GOOGLE_SERVICES_JSON_B64 }}" | base64 -d > android/app/google-services.json
+
+      - name: apply Google Services Gradle plugin (needed for Firebase Remote Config)
+        if: ${{ secrets.GOOGLE_SERVICES_JSON_B64 != '' }}
+        run: |
+          grep -q 'com.google.gms.google-services' android/settings.gradle.kts || \
+          sed -i 's|id("dev.flutter.flutter-plugin-loader") version "1.0.0"|id("dev.flutter.flutter-plugin-loader") version "1.0.0"\n    id("com.google.gms.google-services") version "4.4.2" apply false|' android/settings.gradle.kts
+          grep 'com.google.gms.google-services' android/settings.gradle.kts
+
+          grep -q 'com.google.gms.google-services' android/app/build.gradle.kts || \
+          sed -i 's|id("dev.flutter.flutter-gradle-plugin")|id("dev.flutter.flutter-gradle-plugin")\n    id("com.google.gms.google-services")|' android/app/build.gradle.kts
+          grep 'com.google.gms.google-services' android/app/build.gradle.kts
+
       - run: flutter pub get
 
       - run: flutter analyze

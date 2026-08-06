@@ -6,6 +6,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'app.dart';
 import 'services/history_service.dart';
+import 'services/remote_config_service.dart';
 import 'state/app_settings.dart';
 
 Future<void> main() async {
@@ -19,7 +20,8 @@ Future<void> main() async {
     databaseFactory = databaseFactoryFfi;
   }
 
-  final appSettings = await AppSettings.create();
+  final remoteConfigService = await RemoteConfigService.create();
+  final appSettings = await AppSettings.create(remoteConfigService);
   final historyService = await HistoryService.create();
 
   runApp(LocationExplorerApp(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/locale_codes.dart';
 import '../models/settings_models.dart';
+import '../services/remote_config_service.dart';
 import '../services/secure_storage.dart';
 import '../services/settings_service.dart';
 
@@ -9,16 +10,20 @@ import '../services/settings_service.dart';
 /// can listen for changes (locale, units, LLM config, reduced motion, etc).
 /// Client-only architecture (CLAUDE.md "Quyết định đã chốt 2026-08-04 (đợt
 /// 2)") — every provider key is BYOK, there's no free-tier/device_id/backend
-/// concept anymore.
+/// concept anymore. Since đợt 8, a user-entered BYOK key still always wins,
+/// but a missing key now falls back to an app-owned default pulled from
+/// Firebase Remote Config (`RemoteConfigService`) instead of leaving the
+/// item stuck on "needs API key" — see `buildRequestSettings`.
 class AppSettings extends ChangeNotifier {
   final SettingsService _settings;
   final SecureStorageService _secureStorage;
+  final RemoteConfigService _remoteConfig;
 
-  AppSettings(this._settings, this._secureStorage);
+  AppSettings(this._settings, this._secureStorage, this._remoteConfig);
 
-  static Future<AppSettings> create() async {
+  static Future<AppSettings> create(RemoteConfigService remoteConfig) async {
     final settings = await SettingsService.create();
-    return AppSettings(settings, SecureStorageService());
+    return AppSettings(settings, SecureStorageService(), remoteConfig);
   }
 
   Locale? get uiLocale {
@@ -119,16 +124,26 @@ class AppSettings extends ChangeNotifier {
   /// location. Reads every key from secure storage only at call time — none
   /// of them are cached in memory beyond this object, and none ever leave
   /// the device except in a request to the provider that owns that key.
+  ///
+  /// A user-entered BYOK key always wins; when absent, falls back to the
+  /// app-owned default from Firebase Remote Config (đợt 8) — Groq only for
+  /// LLM, since that's the only provider the app ships a default key for.
   Future<RequestSettings> buildRequestSettings() async {
+    final userLlmKey = await getLlmApiKey();
+    final userWeatherKey = await getWeatherApiKey();
+    final userSearchKey = await getSearchApiKey();
     return RequestSettings(
       llmEnabled: llmEnabled,
       llmProvider: llmProvider,
-      llmApiKey: await getLlmApiKey(),
+      llmApiKey: _orNonEmpty(userLlmKey, llmProvider == ByokProvider.groq ? _remoteConfig.groqApiKey : null),
       detailLevel: detailLevel,
       showSources: showSources,
       contentLanguage: contentLanguage,
-      weatherApiKey: await getWeatherApiKey(),
-      searchApiKey: await getSearchApiKey(),
+      weatherApiKey: _orNonEmpty(userWeatherKey, _remoteConfig.weatherApiKey),
+      searchApiKey: _orNonEmpty(userSearchKey, _remoteConfig.tavilyApiKey),
     );
   }
+
+  String? _orNonEmpty(String? primary, String? fallback) =>
+      (primary != null && primary.trim().isNotEmpty) ? primary : fallback;
 }

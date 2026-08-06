@@ -23,6 +23,69 @@ production-ready dù là 1 người làm.
 
 ## Quyết định đã chốt
 
+### 2026-08-06 (đợt 8) — App-owned default key cho Weather/Search/Groq qua Firebase Remote Config
+
+Chủ dự án dán 3 API key thật (OpenWeatherMap, Tavily, Groq) vào chat và yêu
+cầu **built-in cứng làm default trong app**. Đã TỪ CHỐI làm vậy — repo
+`dieuvu0584/iLocation` là public, commit key vào source lộ ngay lập tức;
+ngay cả không commit git, key bake vào APK build ra vẫn luôn decompile được.
+Khuyên chủ dự án **đổi lại (rotate) cả 3 key** vì đã dán vào chat. Thay vào
+đó, bước đầu thêm nút "Lấy API key" (`GetApiKeyLink` widget) ở mỗi ô nhập
+key trong Settings, trỏ tới trang tạo key của từng provider.
+
+Chủ dự án sau đó yêu cầu đổi kiến trúc để app lấy 3 key này **qua Firebase**
+thay vì bắt mỗi người dùng tự nhập. Đã hỏi lại 2 câu: (1) Remote Config hay
+Cloud Functions proxy, (2) đã có Firebase project chưa. Chủ dự án chọn
+Remote Config, có hỏi thêm "mã hoá key trên Firebase, giải mã trong app có
+ổn không" — đã giải thích: mã hoá/giải mã phía client KHÔNG chặn được người
+cố tình decompile APK (khoá giải mã cũng phải đóng gói trong cùng APK), chỉ
+chặn được rò rỉ tình cờ (vd ai đó nhìn màn hình Firebase console). Quyết
+định: **dùng Remote Config, KHÔNG mã hoá** — mã hoá thêm phức tạp mà không
+tăng bảo mật thật sự cho use case side-project cá nhân này.
+
+- **Đây KHÔNG phải BYOK.** Đây là default key do CHỦ DỰ ÁN sở hữu, cấu hình
+  1 lần trên Firebase Console (Remote Config parameters: `weather_api_key`,
+  `tavily_api_key`, `groq_api_key`), mọi người dùng app đều dùng chung —
+  **đổi ngược lại hoàn toàn ý "mọi provider đều BYOK, không có key mặc định
+  của app"** ở đợt 2/đợt 4. Key người dùng tự nhập trong Settings (secure
+  storage) LUÔN được ưu tiên trước; chỉ khi ô đó trống mới rơi xuống dùng
+  default key từ Remote Config — xem `AppSettings.buildRequestSettings()`
+  (`_orNonEmpty`), đây là nơi DUY NHẤT quyết định thứ tự ưu tiên này, đừng
+  thêm logic fallback ở chỗ khác.
+- **`RemoteConfigService`** (`mobile/lib/services/remote_config_service.dart`)
+  bọc `firebase_core` + `firebase_remote_config`. Thiết kế fail-safe tuyệt
+  đối: MỌI lỗi khi `Firebase.initializeApp()` (thiếu
+  `google-services.json`, không mạng lần đầu mở app, project chưa cấu hình,
+  v.v.) đều bị bắt và service rơi về trạng thái no-op (mọi getter trả
+  `null`) — KHÔNG BAO GIỜ được để lỗi Firebase làm crash app hay chặn khởi
+  động, vì Firebase ở đây là hạ tầng tuỳ chọn, không phải phụ thuộc bắt
+  buộc. Nếu sửa file này, giữ nguyên nguyên tắc try/catch bao ngoài này.
+- **Chỉ Groq có default LLM key** (chủ dự án chỉ đưa 1 key Groq, không phải
+  cả 4 provider) — fallback LLM key trong `buildRequestSettings()` chỉ áp
+  dụng khi `llmProvider == ByokProvider.groq`, các provider LLM khác
+  (Gemini/OpenRouter/OpenAI) vẫn bắt buộc BYOK thuần, không có default.
+- **`android/` không commit vào repo** (xem đợt 4) nên
+  `google-services.json` cũng không thể commit thẳng — CI
+  (`.github/workflows/build-apk.yml`) ghi file này từ 1 GitHub Actions
+  secret (`GOOGLE_SERVICES_JSON_B64`, nội dung file gốc encode base64) và
+  tự thêm Gradle plugin `com.google.gms.google-services` vào
+  `settings.gradle.kts`/`app/build.gradle.kts` bằng `sed`, **CHỈ KHI secret
+  đó tồn tại** (`if: secrets.GOOGLE_SERVICES_JSON_B64 != ''`) — build vẫn
+  chạy bình thường (thuần BYOK, như trước đợt 8) nếu chủ dự án chưa set
+  secret này. Có `grep` xác nhận sau mỗi `sed` để build FAIL RÕ RÀNG nếu
+  template Gradle của Flutter version sau này đổi khác, thay vì âm thầm bỏ
+  qua bước inject plugin. **Việc chủ dự án cần tự làm (Claude không tự làm
+  được vì cần đăng nhập Firebase CLI của chủ dự án)**: chạy
+  `flutterfire configure` hoặc tải `google-services.json` từ Firebase
+  Console cho app Android (package `com.ilocation.ilocation`, khớp
+  `--org com.ilocation` trong CI), thêm base64 của file đó làm secret
+  `GOOGLE_SERVICES_JSON_B64` trong GitHub repo settings, và điền 3 giá trị
+  key thật vào 3 Remote Config parameter tương ứng trên Firebase Console.
+- Chưa có UI hiển thị "đang dùng default key của app" khi rơi vào fallback
+  — người dùng không biết được item nào đang chạy bằng key chung vs key
+  riêng của họ. Không phải yêu cầu ban đầu, nhưng để ý nếu sau này muốn làm
+  rõ hơn trong UI.
+
 ### 2026-08-05 (đợt 7) — Sửa bug cỡ chữ (Font size) trong Settings không có tác dụng
 
 Chủ dự án báo kéo thanh trượt "Font size" lên max nhưng không thấy chữ đổi
@@ -273,10 +336,20 @@ lại để biết lý do ban đầu, đừng làm theo #4 nữa:
   KHÔNG cần API key (đã chốt đợt 3, đổi từ Google). Đừng đổi lại Google
   hoặc thêm key requirement cho mục này mà không hỏi lại.
 - **LLM**: người dùng tự chọn provider (Gemini / Groq / OpenRouter /
-  OpenAI) + tự nhập key — không có provider/key mặc định của app.
-- **Web search**: Tavily, BYOK, tuỳ chọn (không bắt buộc — thiếu key thì
-  bỏ qua bước search, LLM trả lời bằng kiến thức sẵn có và nói rõ không có
-  nguồn).
+  OpenAI) + tự nhập key — key riêng của người dùng LUÔN được ưu tiên; nếu
+  chọn Groq và bỏ trống, rơi xuống default key của app qua Firebase Remote
+  Config (đợt 8) — 3 provider LLM còn lại không có default, vẫn BYOK thuần.
+- **Web search**: Tavily, BYOK — key riêng ưu tiên, bỏ trống rơi xuống
+  default key của app qua Firebase Remote Config (đợt 8); nếu cả 2 đều
+  không có thì bỏ qua bước search, LLM trả lời bằng kiến thức sẵn có và nói
+  rõ không có nguồn.
+- **Weather**: OpenWeatherMap, BYOK — key riêng ưu tiên, bỏ trống rơi xuống
+  default key của app qua Firebase Remote Config (đợt 8).
+- **Firebase Remote Config** (đợt 8): nguồn duy nhất của 3 default key
+  (Weather/Tavily/Groq) do CHỦ DỰ ÁN sở hữu — KHÔNG phải BYOK, KHÔNG phải
+  backend (không có server code nào của app chạy trên Firebase, chỉ đọc 1
+  giá trị cấu hình tĩnh). `RemoteConfigService` fail-safe tuyệt đối — mọi
+  lỗi Firebase đều rơi về no-op, không bao giờ crash app.
 - **`backend/` (Python/FastAPI)**: còn trong repo, có test, nhưng KHÔNG
   được mobile app dùng — xem quyết định đợt 2 ở trên.
 
@@ -315,10 +388,11 @@ lại để biết lý do ban đầu, đừng làm theo #4 nữa:
       photo_link_service.dart                      # dựng URL Google Images từ tên+quốc gia, KHÔNG key, KHÔNG LLM
       orchestrator_service.dart                    # Dart port của backend/app/services/orchestrator.py
       secure_storage.dart                            # API key BYOK còn lại (LLM + Weather + Search)
+      remote_config_service.dart                       # Firebase Remote Config — default key Weather/Tavily/Groq (đợt 8), fail-safe
       settings_service.dart                            # SharedPreferences — setting không nhạy cảm
       history_service.dart
     /state
-      app_settings.dart            # ChangeNotifier bọc SettingsService + SecureStorageService
+      app_settings.dart            # ChangeNotifier bọc SettingsService + SecureStorageService + RemoteConfigService
       location_provider.dart         # ChangeNotifier gọi orchestrator_service.dart trực tiếp (không qua HTTP)
     /l10n                              # ARB files (app_en.arb, app_vi.arb) + generated/ (xem README)
     /theme
@@ -422,12 +496,29 @@ const borderColor = Color(0xFF2A4356);
       liên quan tới điện thoại thật của user).
 - [ ] Build/test iOS — môi trường build không có Xcode.
 - [ ] Mở rộng bảng số khẩn cấp ngoài ~40 quốc gia hiện có.
+- [x] Code app-owned default key qua Firebase Remote Config (đợt 8) —
+      `RemoteConfigService` + fallback trong `AppSettings`, CI đã có bước
+      inject `google-services.json`/Gradle plugin (gated theo secret).
+- [ ] Chủ dự án cần tự: chạy `flutterfire configure` hoặc tải
+      `google-services.json` từ Firebase Console, thêm base64 làm secret
+      `GOOGLE_SERVICES_JSON_B64` trong GitHub repo settings, điền 3 giá trị
+      key thật vào Remote Config Console — Claude không tự làm được vì cần
+      đăng nhập Firebase CLI/Console của chủ dự án. Cho tới lúc đó, app vẫn
+      chạy đúng như trước đợt 8 (thuần BYOK, default key rơi về `null`).
 
 ## Việc KHÔNG được tự quyết định (còn lại)
 
 - Đổi web search provider khỏi Tavily mà không hỏi lại.
-- Thêm bất kỳ managed/paid service nào (vd: quay lại có backend, hoặc thêm
-  1 API trả phí khác) mà không hỏi lại — kiến trúc client-only + BYOK đã
-  chốt ở đợt 2, đừng tự ý quay lại backend.
+- Thêm bất kỳ managed/paid service nào KHÁC ngoài Firebase Remote Config
+  (vd: quay lại có backend thật sự chạy code — Cloud Functions, hoặc thêm 1
+  API trả phí khác) mà không hỏi lại — kiến trúc client-only vẫn giữ
+  nguyên, Firebase Remote Config ở đợt 8 chỉ là 1 giá trị cấu hình tĩnh đọc
+  từ xa, KHÔNG phải backend chạy code, đã được chủ dự án xác nhận trực
+  tiếp nên KHÔNG tính là vi phạm quyết định đợt 2. Đừng tự ý đổi qua
+  Cloud Functions proxy (phương án đã hỏi và bị từ chối vì cần backend +
+  Firebase Blaze trả phí) mà không hỏi lại lần nữa.
+- Mã hoá key trong Remote Config — đã cân nhắc và quyết định KHÔNG làm
+  (đợt 8, xem lý do ở trên: không tăng bảo mật thật sự, chỉ thêm phức
+  tạp). Đừng tự thêm lại trừ khi chủ dự án yêu cầu.
 - Thiết kế lại UI Search/History thành phiên bản "đầy đủ" (đã triển khai bản
   tối giản; nếu muốn nâng cấp UI, xác nhận hướng thiết kế trước).

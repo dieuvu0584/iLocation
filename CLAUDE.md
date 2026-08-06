@@ -70,11 +70,16 @@ tăng bảo mật thật sự cho use case side-project cá nhân này.
   secret (`GOOGLE_SERVICES_JSON_B64`, nội dung file gốc encode base64) và
   tự thêm Gradle plugin `com.google.gms.google-services` vào
   `settings.gradle.kts`/`app/build.gradle.kts` bằng `sed`, **CHỈ KHI secret
-  đó tồn tại** (`if: secrets.GOOGLE_SERVICES_JSON_B64 != ''`) — build vẫn
-  chạy bình thường (thuần BYOK, như trước đợt 8) nếu chủ dự án chưa set
-  secret này. Có `grep` xác nhận sau mỗi `sed` để build FAIL RÕ RÀNG nếu
-  template Gradle của Flutter version sau này đổi khác, thay vì âm thầm bỏ
-  qua bước inject plugin. **Việc chủ dự án cần tự làm (Claude không tự làm
+  đó tồn tại** — check bằng bash (`if [ -z "$GOOGLE_SERVICES_JSON_B64" ];
+  then exit 0; fi` trong `run:`, đọc secret qua `env:`), KHÔNG dùng
+  `if: secrets.X != ''` ở step — GitHub Actions từ chối cả file workflow
+  với lỗi "Unrecognized named-value: 'secrets'" nếu dùng `secrets` context
+  trực tiếp trong `if:` của step (đã tự vấp lỗi này 1 lần, build fail ngay
+  lập tức với 0 job chạy — đừng lặp lại). Build vẫn chạy bình thường (thuần
+  BYOK, như trước đợt 8) nếu chủ dự án chưa set secret này. Có `grep` xác
+  nhận sau mỗi `sed` để build FAIL RÕ RÀNG nếu template Gradle của Flutter
+  version sau này đổi khác, thay vì âm thầm bỏ qua bước inject plugin.
+  **Việc chủ dự án cần tự làm (Claude không tự làm
   được vì cần đăng nhập Firebase CLI của chủ dự án)**: chạy
   `flutterfire configure` hoặc tải `google-services.json` từ Firebase
   Console cho app Android (package `com.ilocation.ilocation`, khớp

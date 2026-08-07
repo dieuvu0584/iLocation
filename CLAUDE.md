@@ -23,6 +23,55 @@ production-ready dù là 1 người làm.
 
 ## Quyết định đã chốt
 
+### 2026-08-06 (đợt 9) — Bỏ qua Firebase, dùng key mặc định qua `--dart-define` ở CI; ẩn 3 ô nhập key
+
+Ngay sau đợt 8, chủ dự án dán LẠI 3 key thật (Weather/Tavily/Groq — cùng 3
+key đã dán ở đợt 8) và yêu cầu thẳng: "use 3 key trên cho app, và hide
+setting cho 3 key này, build lại app". Đã hỏi lại 1 câu (hide ngay hay đợi
+setup Firebase Console xong) — chủ dự án trả lời **"ignore firebase
+solution, use keys and hide setting now anyway"**, tức là bỏ luôn hướng
+Firebase Remote Config (đợt 8) cho đợt key lần này.
+
+- **Vẫn TỪ CHỐI ghi giá trị key thật vào bất kỳ file nào commit vào repo**
+  — lý do y hệt đợt 8 (repo public, lộ ngay lập tức, bot quét trong vài
+  phút). Đây là ranh giới không đổi dù được yêu cầu trực tiếp 2 lần.
+- **Giải pháp đã làm thay vì Firebase**: `mobile/lib/config/build_time_defaults.dart`
+  (`BuildTimeDefaults`) — 3 hằng số `String.fromEnvironment('DEFAULT_WEATHER_API_KEY'
+  | 'DEFAULT_TAVILY_API_KEY' | 'DEFAULT_GROQ_API_KEY')`, chỉ có giá trị khi
+  CI build với `--dart-define` tương ứng. `.github/workflows/build-apk.yml`
+  đọc 3 secret cùng tên qua `env:` rồi truyền vào `flutter build apk
+  --release --dart-define=...`. **Chủ dự án cần tự vào GitHub repo Settings →
+  Secrets and variables → Actions, tự thêm 3 secret này với giá trị key
+  thật** — Claude không có quyền tạo secret. Nếu chưa set, `--dart-define`
+  nhận chuỗi rỗng, `BuildTimeDefaults` coi là "không có default", rơi tiếp
+  xuống Firebase Remote Config (đợt 8, vẫn giữ nguyên code, không xoá) rồi
+  tới "cần thêm API key" — không có gì hỏng, chỉ đơn giản chưa có default
+  nào hoạt động cho tới khi họ set secret.
+- **Thứ tự ưu tiên đầy đủ** (`AppSettings.buildRequestSettings()`): key
+  người dùng tự nhập (secure storage) → `BuildTimeDefaults` (đợt 9,
+  `--dart-define`) → Firebase Remote Config (đợt 8) → "cần thêm API key".
+  Cách này KHÔNG cần Firebase Console/`google-services.json` gì cả nếu chủ
+  dự án chỉ dùng đường `--dart-define` — đơn giản hơn hẳn đợt 8, đánh đổi:
+  đổi key phải build lại app (không "remote" thật sự như Remote Config).
+- **Ẩn hẳn 3 ô nhập key theo đúng yêu cầu**:
+  - Xoá hẳn `api_keys_settings_screen.dart` (màn hình Weather + Search) và
+    bỏ tile "API Keys" khỏi `settings_home_screen.dart` — cả màn hình chỉ
+    có 2 field này nên xoá nguyên màn thay vì để trống.
+  - `llm_settings_screen.dart`: ô nhập API key CHỈ ẩn khi
+    `llmProvider == ByokProvider.groq` (thay bằng 1 card ghi chú
+    `l10n.llmKeyBuiltIn`) — Gemini/OpenRouter/OpenAI vẫn hiện ô nhập bình
+    thường vì 3 provider đó KHÔNG có default, ẩn đi sẽ khiến chúng vĩnh
+    viễn không dùng được. Đừng ẩn ô key cho các provider này.
+  - `AppSettings.getWeatherApiKey/setWeatherApiKey/getSearchApiKey/
+    setSearchApiKey` vẫn giữ nguyên trong code (không xoá) — dù không còn
+    UI nào gọi tới `setXxx`, `getXxx` vẫn được `buildRequestSettings()` gọi
+    để tôn trọng key cũ đã lưu từ trước khi ẩn UI (nếu có).
+- Do đã ẩn UI nhập key, khi cả 3 secret CI lẫn Firebase Remote Config đều
+  chưa set (đúng trạng thái hiện tại), Weather/Search/Groq sẽ hiện "cần
+  thêm API key" **và người dùng không còn cách nào tự sửa từ trong app** —
+  đã báo trước điều này, chủ dự án xác nhận chấp nhận đánh đổi. Ưu tiên số 1
+  cần làm tiếp: set 3 GitHub secret nói trên.
+
 ### 2026-08-06 (đợt 8) — App-owned default key cho Weather/Search/Groq qua Firebase Remote Config
 
 Chủ dự án dán 3 API key thật (OpenWeatherMap, Tavily, Groq) vào chat và yêu
@@ -344,17 +393,31 @@ lại để biết lý do ban đầu, đừng làm theo #4 nữa:
   OpenAI) + tự nhập key — key riêng của người dùng LUÔN được ưu tiên; nếu
   chọn Groq và bỏ trống, rơi xuống default key của app qua Firebase Remote
   Config (đợt 8) — 3 provider LLM còn lại không có default, vẫn BYOK thuần.
-- **Web search**: Tavily, BYOK — key riêng ưu tiên, bỏ trống rơi xuống
-  default key của app qua Firebase Remote Config (đợt 8); nếu cả 2 đều
-  không có thì bỏ qua bước search, LLM trả lời bằng kiến thức sẵn có và nói
-  rõ không có nguồn.
-- **Weather**: OpenWeatherMap, BYOK — key riêng ưu tiên, bỏ trống rơi xuống
-  default key của app qua Firebase Remote Config (đợt 8).
-- **Firebase Remote Config** (đợt 8): nguồn duy nhất của 3 default key
-  (Weather/Tavily/Groq) do CHỦ DỰ ÁN sở hữu — KHÔNG phải BYOK, KHÔNG phải
-  backend (không có server code nào của app chạy trên Firebase, chỉ đọc 1
-  giá trị cấu hình tĩnh). `RemoteConfigService` fail-safe tuyệt đối — mọi
-  lỗi Firebase đều rơi về no-op, không bao giờ crash app.
+  Ô nhập key riêng cho LLM chỉ ẩn khi provider là Groq (đợt 9) — 3 provider
+  kia vẫn hiện ô nhập vì không có default.
+- **Web search**: Tavily — không còn ô nhập key trong app (đợt 9, đã ẩn UI).
+  Thứ tự nguồn key: key người dùng đã lưu trước đó (nếu có) → build-time
+  default qua `--dart-define` (đợt 9) → Firebase Remote Config (đợt 8);
+  thiếu cả 3 thì bỏ qua bước search, LLM trả lời bằng kiến thức sẵn có và
+  nói rõ không có nguồn.
+- **Weather**: OpenWeatherMap — không còn ô nhập key trong app (đợt 9, đã
+  ẩn UI). Cùng thứ tự nguồn key như Web search ở trên.
+- **App-owned default key cho Weather/Tavily/Groq** — 2 lớp, ưu tiên từ
+  trên xuống:
+  1. **Build-time qua `--dart-define`** (đợt 9, `BuildTimeDefaults`
+     trong `mobile/lib/config/build_time_defaults.dart`) — đọc từ 3
+     GitHub Actions secret (`DEFAULT_WEATHER_API_KEY`/
+     `DEFAULT_TAVILY_API_KEY`/`DEFAULT_GROQ_API_KEY`) tại lúc CI build
+     APK, KHÔNG cần Firebase. Đây là lớp chủ dự án đang dùng (đã yêu cầu
+     "ignore firebase solution" ở đợt 9).
+  2. **Firebase Remote Config** (đợt 8, `RemoteConfigService`) — vẫn giữ
+     nguyên trong code làm lớp dự phòng thứ 2, dù chủ dự án hiện chưa dùng
+     tới (chưa set `google-services.json`/Remote Config Console). KHÔNG
+     phải BYOK, KHÔNG phải backend. Fail-safe tuyệt đối — mọi lỗi Firebase
+     đều rơi về no-op, không bao giờ crash app.
+  Cả 2 lớp đều là key do CHỦ DỰ ÁN sở hữu, dùng chung cho mọi người dùng —
+  khác hẳn BYOK. Xem `AppSettings.buildRequestSettings()` cho thứ tự ưu
+  tiên đầy đủ.
 - **`backend/` (Python/FastAPI)**: còn trong repo, có test, nhưng KHÔNG
   được mobile app dùng — xem quyết định đợt 2 ở trên.
 
@@ -370,8 +433,7 @@ lại để biết lý do ban đầu, đừng làm theo #4 nữa:
       graph/               # Node-graph 2-tier (node_graph_screen.dart, detail_panel.dart)
       settings/
         language_settings_screen.dart
-        llm_settings_screen.dart      # provider + key LLM, detail level, show sources
-        api_keys_settings_screen.dart   # key Weather, Search (Tavily) — Places/Geocoding không cần key
+        llm_settings_screen.dart      # provider + (chỉ hiện ô key khi KHÔNG phải Groq, đợt 9), detail level, show sources
         privacy_settings_screen.dart
         settings_home_screen.dart
       search/               # search_screen.dart — đơn giản, chức năng
@@ -379,6 +441,8 @@ lại để biết lý do ban đầu, đừng làm theo #4 nữa:
     /widgets
       node_graph/            # ring_layout, graph_node, connector_painter, graph_icons
       common/                  # settings_scaffold.dart
+    /config
+      build_time_defaults.dart   # đợt 9: default key qua --dart-define lúc CI build, KHÔNG commit giá trị thật
     /db
       app_database.dart          # sqflite: mở DB, tạo bảng locations/cache_items
     /services
@@ -503,16 +567,30 @@ const borderColor = Color(0xFF2A4356);
 - [ ] Mở rộng bảng số khẩn cấp ngoài ~40 quốc gia hiện có.
 - [x] Code app-owned default key qua Firebase Remote Config (đợt 8) —
       `RemoteConfigService` + fallback trong `AppSettings`, CI đã có bước
-      inject `google-services.json`/Gradle plugin (gated theo secret).
-- [ ] Chủ dự án cần tự: chạy `flutterfire configure` hoặc tải
-      `google-services.json` từ Firebase Console, thêm base64 làm secret
-      `GOOGLE_SERVICES_JSON_B64` trong GitHub repo settings, điền 3 giá trị
-      key thật vào Remote Config Console — Claude không tự làm được vì cần
-      đăng nhập Firebase CLI/Console của chủ dự án. Cho tới lúc đó, app vẫn
-      chạy đúng như trước đợt 8 (thuần BYOK, default key rơi về `null`).
+      inject `google-services.json`/Gradle plugin (gated theo secret). Chủ
+      dự án chưa dùng lớp này (đã chọn hướng đợt 9 thay thế) nhưng code vẫn
+      giữ nguyên làm lớp dự phòng thứ 2.
+- [x] Code app-owned default key qua `--dart-define` lúc CI build (đợt 9) —
+      `BuildTimeDefaults`, ưu tiên cao hơn Firebase Remote Config trong
+      `buildRequestSettings()`. Đã ẩn 3 ô nhập key Weather/Search/Groq khỏi
+      Settings UI theo yêu cầu trực tiếp của chủ dự án.
+- [ ] Chủ dự án cần tự thêm 3 GitHub Actions secret (`DEFAULT_WEATHER_API_KEY`,
+      `DEFAULT_TAVILY_API_KEY`, `DEFAULT_GROQ_API_KEY`) trong repo Settings →
+      Secrets and variables → Actions với giá trị key thật — Claude không
+      có quyền tạo secret. **Cho tới khi làm bước này, Weather/Search/Groq
+      sẽ hiện "cần thêm API key" và người dùng KHÔNG còn cách nào tự sửa từ
+      trong app** (vì đã ẩn UI nhập key ở đợt 9) — đây là đánh đổi chủ dự
+      án đã xác nhận chấp nhận.
 
 ## Việc KHÔNG được tự quyết định (còn lại)
 
+- **Ghi giá trị API key thật vào bất kỳ file nào commit vào repo** (source,
+  YAML, docs, v.v.) — đã bị từ chối 2 lần (đợt 8, đợt 9) dù được yêu cầu
+  trực tiếp, vì repo `dieuvu0584/iLocation` là public. Nơi DUY NHẤT hợp lệ
+  cho giá trị key thật: GitHub Actions secrets (chủ dự án tự thêm) hoặc
+  Firebase Remote Config Console (chủ dự án tự điền) — không bao giờ trong
+  git history. Đây là ranh giới cứng, không tự đảo ngược kể cả khi được
+  yêu cầu lại lần nữa.
 - Đổi web search provider khỏi Tavily mà không hỏi lại.
 - Thêm bất kỳ managed/paid service nào KHÁC ngoài Firebase Remote Config
   (vd: quay lại có backend thật sự chạy code — Cloud Functions, hoặc thêm 1

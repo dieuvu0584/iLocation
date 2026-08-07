@@ -205,6 +205,10 @@ class AppLocalizationsFa extends AppLocalizations {
   String get byokApiKeyHint => 'فقط به‌صورت امن روی همین دستگاه ذخیره می‌شود';
 
   @override
+  String get llmKeyBuiltIn =>
+      'This provider uses a shared key built into the app — no key needed.';
+
+  @override
   String get detailLevel => 'سطح جزئیات';
 
   @override

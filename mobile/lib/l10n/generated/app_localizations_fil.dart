@@ -205,6 +205,10 @@ class AppLocalizationsFil extends AppLocalizations {
   String get byokApiKeyHint => 'Ligtas na naka-imbak lamang sa device na ito';
 
   @override
+  String get llmKeyBuiltIn =>
+      'This provider uses a shared key built into the app — no key needed.';
+
+  @override
   String get detailLevel => 'Antas ng detalye';
 
   @override

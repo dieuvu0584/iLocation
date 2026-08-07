@@ -207,6 +207,10 @@ class AppLocalizationsSw extends AppLocalizations {
       'Imehifadhiwa kwa usalama kwenye kifaa hiki pekee';
 
   @override
+  String get llmKeyBuiltIn =>
+      'This provider uses a shared key built into the app — no key needed.';
+
+  @override
   String get detailLevel => 'Kiwango cha maelezo';
 
   @override

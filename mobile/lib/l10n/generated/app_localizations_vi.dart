@@ -203,6 +203,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get byokApiKeyHint => 'Chỉ lưu an toàn trên thiết bị này';
 
   @override
+  String get llmKeyBuiltIn =>
+      'Nhà cung cấp này dùng key chung được tích hợp sẵn trong app — không cần nhập key.';
+
+  @override
   String get detailLevel => 'Độ chi tiết';
 
   @override

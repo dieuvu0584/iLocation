@@ -204,6 +204,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get byokApiKeyHint => 'Biztonságosan, csak ezen az eszközön tárolva';
 
   @override
+  String get llmKeyBuiltIn =>
+      'This provider uses a shared key built into the app — no key needed.';
+
+  @override
   String get detailLevel => 'Részletességi szint';
 
   @override

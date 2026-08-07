@@ -204,6 +204,10 @@ class AppLocalizationsUr extends AppLocalizations {
   String get byokApiKeyHint => 'صرف اس ڈیوائس پر محفوظ طریقے سے محفوظ';
 
   @override
+  String get llmKeyBuiltIn =>
+      'This provider uses a shared key built into the app — no key needed.';
+
+  @override
   String get detailLevel => 'تفصیل کی سطح';
 
   @override

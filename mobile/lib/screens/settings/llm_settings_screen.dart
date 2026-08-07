@@ -104,31 +104,49 @@ class _LlmSettingsScreenState extends State<LlmSettingsScreen> {
                 ),
               ),
             ),
-            SettingsSectionLabel(l10n.byokApiKey),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TextField(
-                controller: _apiKeyController,
-                obscureText: true,
-                enabled: _apiKeyLoaded,
-                decoration: InputDecoration(
-                  hintText: l10n.byokApiKeyHint,
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.save_outlined, color: AppColors.accentAmber),
-                    onPressed: () async {
-                      await appSettings.setLlmApiKey(_apiKeyController.text.trim());
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.save)));
-                      }
-                    },
+            // Groq ships with a shared key built into the app (đợt 9,
+            // CLAUDE.md) — no BYOK field for it. Other providers have no
+            // default, so they still need their own key entered here.
+            if (appSettings.llmProvider == ByokProvider.groq)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBg2,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.borderColor),
+                  ),
+                  child: Text(l10n.llmKeyBuiltIn, style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                ),
+              )
+            else ...[
+              SettingsSectionLabel(l10n.byokApiKey),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: TextField(
+                  controller: _apiKeyController,
+                  obscureText: true,
+                  enabled: _apiKeyLoaded,
+                  decoration: InputDecoration(
+                    hintText: l10n.byokApiKeyHint,
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.save_outlined, color: AppColors.accentAmber),
+                      onPressed: () async {
+                        await appSettings.setLlmApiKey(_apiKeyController.text.trim());
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.save)));
+                        }
+                      },
+                    ),
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-              child: GetApiKeyLink(url: _keyUrlFor(appSettings.llmProvider)),
-            ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
+                child: GetApiKeyLink(url: _keyUrlFor(appSettings.llmProvider)),
+              ),
+            ],
             SettingsSectionLabel(l10n.detailLevel),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),

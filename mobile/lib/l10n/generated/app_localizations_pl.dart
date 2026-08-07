@@ -206,6 +206,10 @@ class AppLocalizationsPl extends AppLocalizations {
       'Przechowywany bezpiecznie tylko na tym urządzeniu';
 
   @override
+  String get llmKeyBuiltIn =>
+      'This provider uses a shared key built into the app — no key needed.';
+
+  @override
   String get detailLevel => 'Poziom szczegółowości';
 
   @override

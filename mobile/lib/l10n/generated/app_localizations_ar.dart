@@ -204,6 +204,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get byokApiKeyHint => 'يُخزَّن بأمان على هذا الجهاز فقط';
 
   @override
+  String get llmKeyBuiltIn =>
+      'This provider uses a shared key built into the app — no key needed.';
+
+  @override
   String get detailLevel => 'مستوى التفصيل';
 
   @override

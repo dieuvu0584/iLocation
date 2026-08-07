@@ -206,6 +206,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Guardada de forma segura solo en este dispositivo';
 
   @override
+  String get llmKeyBuiltIn =>
+      'This provider uses a shared key built into the app — no key needed.';
+
+  @override
   String get detailLevel => 'Nivel de detalle';
 
   @override

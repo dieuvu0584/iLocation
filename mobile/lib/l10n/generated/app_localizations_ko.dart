@@ -196,6 +196,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get byokApiKeyHint => '이 기기에만 안전하게 저장됩니다';
 
   @override
+  String get llmKeyBuiltIn =>
+      'This provider uses a shared key built into the app — no key needed.';
+
+  @override
   String get detailLevel => '세부 수준';
 
   @override

@@ -204,6 +204,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get byokApiKeyHint => 'Yalnızca bu cihazda güvenli şekilde saklanır';
 
   @override
+  String get llmKeyBuiltIn =>
+      'This provider uses a shared key built into the app — no key needed.';
+
+  @override
   String get detailLevel => 'Ayrıntı düzeyi';
 
   @override

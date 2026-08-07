@@ -203,6 +203,10 @@ class AppLocalizationsDa extends AppLocalizations {
   String get byokApiKeyHint => 'Gemmes sikkert kun på denne enhed';
 
   @override
+  String get llmKeyBuiltIn =>
+      'This provider uses a shared key built into the app — no key needed.';
+
+  @override
   String get detailLevel => 'Detaljeniveau';
 
   @override

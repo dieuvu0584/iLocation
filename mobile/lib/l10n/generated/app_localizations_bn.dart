@@ -205,6 +205,10 @@ class AppLocalizationsBn extends AppLocalizations {
   String get byokApiKeyHint => 'শুধুমাত্র এই ডিভাইসে নিরাপদে সংরক্ষিত';
 
   @override
+  String get llmKeyBuiltIn =>
+      'This provider uses a shared key built into the app — no key needed.';
+
+  @override
   String get detailLevel => 'বিস্তারিত স্তর';
 
   @override

@@ -205,6 +205,10 @@ class AppLocalizationsRo extends AppLocalizations {
   String get byokApiKeyHint => 'Stocată în siguranță doar pe acest dispozitiv';
 
   @override
+  String get llmKeyBuiltIn =>
+      'This provider uses a shared key built into the app — no key needed.';
+
+  @override
   String get detailLevel => 'Nivel de detaliu';
 
   @override

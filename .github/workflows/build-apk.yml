@@ -75,7 +75,21 @@ jobs:
 
       - run: flutter analyze
 
-      - run: flutter build apk --release
+      # App-owned default Weather/Tavily/Groq keys (đợt 9, CLAUDE.md), baked
+      # in at build time via --dart-define from GitHub Actions secrets —
+      # never committed to the repo. Empty when the secret isn't set, which
+      # BuildTimeDefaults/AppSettings treat as "no default" (falls through
+      # to Firebase Remote Config, then to "needs API key" — no regression).
+      - name: flutter build apk --release
+        env:
+          DEFAULT_WEATHER_API_KEY: ${{ secrets.DEFAULT_WEATHER_API_KEY }}
+          DEFAULT_TAVILY_API_KEY: ${{ secrets.DEFAULT_TAVILY_API_KEY }}
+          DEFAULT_GROQ_API_KEY: ${{ secrets.DEFAULT_GROQ_API_KEY }}
+        run: |
+          flutter build apk --release \
+            --dart-define=DEFAULT_WEATHER_API_KEY="$DEFAULT_WEATHER_API_KEY" \
+            --dart-define=DEFAULT_TAVILY_API_KEY="$DEFAULT_TAVILY_API_KEY" \
+            --dart-define=DEFAULT_GROQ_API_KEY="$DEFAULT_GROQ_API_KEY"
 
       - uses: actions/upload-artifact@v4
         with:

@@ -72,6 +72,7 @@
   "byokProviderLabel": "Nhà cung cấp",
   "byokApiKey": "API key",
   "byokApiKeyHint": "Chỉ lưu an toàn trên thiết bị này",
+  "llmKeyBuiltIn": "Nhà cung cấp này dùng key chung được tích hợp sẵn trong app — không cần nhập key.",
   "detailLevel": "Độ chi tiết",
   "detailLevelShort": "Ngắn gọn",
   "detailLevelDetailed": "Chi tiết",

@@ -529,6 +529,12 @@ abstract class AppLocalizations {
   /// **'Stored securely on this device only'**
   String get byokApiKeyHint;
 
+  /// No description provided for @llmKeyBuiltIn.
+  ///
+  /// In en, this message translates to:
+  /// **'This provider uses a shared key built into the app — no key needed.'**
+  String get llmKeyBuiltIn;
+
   /// No description provided for @detailLevel.
   ///
   /// In en, this message translates to:

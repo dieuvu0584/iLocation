@@ -205,6 +205,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get byokApiKeyHint => 'Хранится безопасно только на этом устройстве';
 
   @override
+  String get llmKeyBuiltIn =>
+      'This provider uses a shared key built into the app — no key needed.';
+
+  @override
   String get detailLevel => 'Уровень детализации';
 
   @override

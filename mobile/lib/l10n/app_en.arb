@@ -72,6 +72,7 @@
   "byokProviderLabel": "Provider",
   "byokApiKey": "API key",
   "byokApiKeyHint": "Stored securely on this device only",
+  "llmKeyBuiltIn": "This provider uses a shared key built into the app — no key needed.",
   "detailLevel": "Detail level",
   "detailLevelShort": "Short",
   "detailLevelDetailed": "Detailed",

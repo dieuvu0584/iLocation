@@ -204,6 +204,10 @@ class AppLocalizationsMs extends AppLocalizations {
   String get byokApiKeyHint => 'Disimpan dengan selamat hanya pada peranti ini';
 
   @override
+  String get llmKeyBuiltIn =>
+      'This provider uses a shared key built into the app — no key needed.';
+
+  @override
   String get detailLevel => 'Tahap perincian';
 
   @override

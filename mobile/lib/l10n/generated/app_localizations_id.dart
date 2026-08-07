@@ -205,6 +205,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get byokApiKeyHint => 'Disimpan dengan aman hanya di perangkat ini';
 
   @override
+  String get llmKeyBuiltIn =>
+      'This provider uses a shared key built into the app — no key needed.';
+
+  @override
   String get detailLevel => 'Tingkat detail';
 
   @override

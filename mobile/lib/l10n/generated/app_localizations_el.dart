@@ -206,6 +206,10 @@ class AppLocalizationsEl extends AppLocalizations {
       'Αποθηκεύεται με ασφάλεια μόνο σε αυτή τη συσκευή';
 
   @override
+  String get llmKeyBuiltIn =>
+      'This provider uses a shared key built into the app — no key needed.';
+
+  @override
   String get detailLevel => 'Επίπεδο λεπτομέρειας';
 
   @override

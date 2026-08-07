@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/build_time_defaults.dart';
 import '../l10n/locale_codes.dart';
 import '../models/settings_models.dart';
 import '../services/remote_config_service.dart';
@@ -11,9 +12,11 @@ import '../services/settings_service.dart';
 /// Client-only architecture (CLAUDE.md "Quyết định đã chốt 2026-08-04 (đợt
 /// 2)") — every provider key is BYOK, there's no free-tier/device_id/backend
 /// concept anymore. Since đợt 8, a user-entered BYOK key still always wins,
-/// but a missing key now falls back to an app-owned default pulled from
-/// Firebase Remote Config (`RemoteConfigService`) instead of leaving the
-/// item stuck on "needs API key" — see `buildRequestSettings`.
+/// but a missing key now falls back to an app-owned default — first a
+/// compile-time default baked in via `--dart-define` at CI build time
+/// (`BuildTimeDefaults`, đợt 9), then Firebase Remote Config
+/// (`RemoteConfigService`, đợt 8) — instead of leaving the item stuck on
+/// "needs API key". See `buildRequestSettings`.
 class AppSettings extends ChangeNotifier {
   final SettingsService _settings;
   final SecureStorageService _secureStorage;
@@ -126,21 +129,25 @@ class AppSettings extends ChangeNotifier {
   /// the device except in a request to the provider that owns that key.
   ///
   /// A user-entered BYOK key always wins; when absent, falls back to the
-  /// app-owned default from Firebase Remote Config (đợt 8) — Groq only for
-  /// LLM, since that's the only provider the app ships a default key for.
+  /// compile-time default (đợt 9) then Firebase Remote Config (đợt 8) — Groq
+  /// only for LLM, since that's the only provider the app ships a default
+  /// key for.
   Future<RequestSettings> buildRequestSettings() async {
     final userLlmKey = await getLlmApiKey();
     final userWeatherKey = await getWeatherApiKey();
     final userSearchKey = await getSearchApiKey();
+    final defaultLlmKey = llmProvider == ByokProvider.groq
+        ? _orNonEmpty(BuildTimeDefaults.groqApiKey, _remoteConfig.groqApiKey)
+        : null;
     return RequestSettings(
       llmEnabled: llmEnabled,
       llmProvider: llmProvider,
-      llmApiKey: _orNonEmpty(userLlmKey, llmProvider == ByokProvider.groq ? _remoteConfig.groqApiKey : null),
+      llmApiKey: _orNonEmpty(userLlmKey, defaultLlmKey),
       detailLevel: detailLevel,
       showSources: showSources,
       contentLanguage: contentLanguage,
-      weatherApiKey: _orNonEmpty(userWeatherKey, _remoteConfig.weatherApiKey),
-      searchApiKey: _orNonEmpty(userSearchKey, _remoteConfig.tavilyApiKey),
+      weatherApiKey: _orNonEmpty(userWeatherKey, _orNonEmpty(BuildTimeDefaults.weatherApiKey, _remoteConfig.weatherApiKey)),
+      searchApiKey: _orNonEmpty(userSearchKey, _orNonEmpty(BuildTimeDefaults.tavilyApiKey, _remoteConfig.tavilyApiKey)),
     );
   }
 

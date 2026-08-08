@@ -5,10 +5,10 @@ library;
 const List<String> kGroupIds = ['explore', 'practical', 'safety', 'culture', 'entry_stay'];
 
 const Map<String, List<String>> kChildIdsByGroup = {
-  'explore': ['places', 'food', 'best_time', 'hotels', 'photos', 'maps'],
+  'explore': ['places', 'food', 'best_time', 'travel_tips', 'hotels', 'photos', 'maps'],
   'practical': ['weather', 'transport', 'power', 'currency', 'timezone'],
   'safety': ['safety_level', 'health', 'water', 'insurance', 'emergency'],
-  'culture': ['language', 'etiquette', 'tipping', 'holidays'],
+  'culture': ['language', 'etiquette', 'tipping', 'holidays', 'history'],
   'entry_stay': ['visa', 'airport', 'stay', 'cost'],
 };
 
@@ -20,8 +20,8 @@ const Set<String> kStaticItemIds = {'emergency', 'timezone', 'photos', 'maps'};
 
 /// Everything else is LLM-summarized from web search results.
 const Set<String> kLlmItemIds = {
-  'food', 'best_time', 'transport', 'power', 'currency', 'safety_level', 'health',
-  'water', 'insurance', 'language', 'etiquette', 'tipping', 'holidays', 'visa', 'stay', 'cost',
+  'food', 'best_time', 'travel_tips', 'transport', 'power', 'currency', 'safety_level', 'health',
+  'water', 'insurance', 'language', 'etiquette', 'tipping', 'holidays', 'history', 'visa', 'stay', 'cost',
 };
 
 /// Group/child labels — kept as fixed English strings (not run through
@@ -40,6 +40,7 @@ const Map<String, String> kChildLabels = {
   'places': 'Nearby places',
   'food': 'Local food',
   'best_time': 'Best time to visit',
+  'travel_tips': 'Travel tips',
   'weather': 'Weather',
   'transport': 'Getting around',
   'power': 'Power & SIM',
@@ -54,6 +55,7 @@ const Map<String, String> kChildLabels = {
   'etiquette': 'Etiquette',
   'tipping': 'Tipping culture',
   'holidays': 'Local holidays',
+  'history': 'History',
   'visa': 'Visa',
   'airport': 'Nearest airport',
   'stay': 'Where to stay',

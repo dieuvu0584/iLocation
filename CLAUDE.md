@@ -23,6 +23,42 @@ production-ready dù là 1 người làm.
 
 ## Quyết định đã chốt
 
+### 2026-08-08 (đợt 11) — Thêm node Travel tips + History; giữ nguyên Currency
+
+Chủ dự án yêu cầu "thêm node thông tin travel, tiền tệ, lịch sử địa điểm".
+Trước khi code, đã hỏi lại 2 câu vì 2/3 yêu cầu có thể trùng/mơ hồ với node
+đã có:
+
+- **"Tiền tệ"**: app đã có sẵn node "Currency & payments" (tỷ giá, thanh
+  toán) trong nhóm `practical`. Chủ dự án xác nhận **node hiện có là đủ,
+  không thêm gì mới** — đây là lý do KHÔNG có thay đổi nào cho `currency`
+  trong đợt này dù nằm trong yêu cầu ban đầu.
+- **"Thông tin travel"**: mơ hồ vì app đã có nhiều node liên quan (giao
+  thông, best time, visa, an toàn...). Đã hỏi lại, chủ dự án chọn **"Mẹo du
+  lịch chung (travel tips)"** — khác các node chi tiết đã có (không phải
+  cảnh báo an ninh chính thức, không phải hướng dẫn giao thông cụ thể).
+- **"Lịch sử địa điểm"**: rõ ràng ngay từ đầu, không cần hỏi — lịch sử/nền
+  tảng hình thành của địa điểm (khác hẳn "Lịch sử tìm kiếm" của
+  `history_screen.dart`, đó là lịch sử tra cứu của người dùng, không liên
+  quan).
+
+- **2 mục con LLM mới**: `travel_tips` (nhóm `explore`, sau `best_time`) và
+  `history` (nhóm `culture`, sau `holidays`) — 24 → 26 mục con. Cả 2 đều đi
+  qua pipeline LLM có sẵn (`kLlmItemIds`), không cần logic riêng ở
+  `orchestrator_service.dart` — chỉ cần thêm entry trong
+  `LlmService.searchQueryTemplates` (câu query tìm kiếm nền cho từng mục)
+  và `kChildLabels`/`kChildIdsByGroup` trong `location_models.dart`, đúng
+  pattern data-driven đã có sẵn cho mọi mục LLM khác.
+- **TTL cache**: cả 2 xếp vào nhóm "rarely-changing content" (90 ngày,
+  `CacheService.ttlByItem`) — cùng nhóm với `food`/`best_time`/`etiquette`/
+  `holidays`, vì nội dung mẹo du lịch chung và lịch sử hầu như không đổi
+  theo ngày/tuần.
+- **Icon**: `travel_tips` → `Icons.tips_and_updates_outlined`, `history` →
+  `Icons.museum_outlined` (`graph_icons.dart`).
+- Layout node-graph tự chia đều theo số lượng mục (đã ghi ở đợt 10) — thêm
+  mục vào `explore`/`culture` không cần sửa gì ở tầng layout, y hệt lý do
+  Google Maps không cần sửa layout ở đợt 10.
+
 ### 2026-08-07 (đợt 10) — Khoá cứng Trợ lý AI = Groq luôn bật, ẩn màn hình cài đặt; thêm node Google Maps
 
 Sau khi xác nhận đã tự thêm xong 3 GitHub Actions secret (đợt 9), chủ dự án
@@ -524,11 +560,11 @@ lại để biết lý do ban đầu, đừng làm theo #4 nữa:
 
 ## Nguyên tắc thiết kế cần giữ khi code
 
-1. **Không phải mọi mục thông tin đều gọi LLM.** Tổng cộng có 24 mục con
+1. **Không phải mọi mục thông tin đều gọi LLM.** Tổng cộng có 26 mục con
    (`kChildIdsByGroup`). 4 mục (Places, Weather, Airport, Hotels) gọi API
    structured trực tiếp (`kApiItemIds`); 4 mục (Timezone, Emergency,
    Signature photos, Google Maps) tính/tra cứu/dựng URL offline không qua
-   LLM, không cần key (`kStaticItemIds`). Chỉ 16/24 mục còn lại mới qua LLM
+   LLM, không cần key (`kStaticItemIds`). Chỉ 18/26 mục còn lại mới qua LLM
    (`kLlmItemIds`). Đừng gộp chung logic.
 
 2. **Số khẩn cấp và visa là dữ liệu rủi ro cao.** Emergency dùng bảng tra

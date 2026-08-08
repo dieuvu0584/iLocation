@@ -21,10 +21,12 @@ class CacheService {
     // Rarely-changing content: 90 days
     'food': Duration(days: 90),
     'best_time': Duration(days: 90),
+    'travel_tips': Duration(days: 90),
     'language': Duration(days: 90),
     'etiquette': Duration(days: 90),
     'tipping': Duration(days: 90),
     'holidays': Duration(days: 90),
+    'history': Duration(days: 90),
     'timezone': Duration(days: 90),
     // Needs-to-be-fresher content: 14 days
     'transport': Duration(days: 14),

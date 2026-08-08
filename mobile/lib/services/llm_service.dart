@@ -22,6 +22,7 @@ class LlmService {
   static const Map<String, String> searchQueryTemplates = {
     'food': '{name} local food specialties must-try dishes',
     'best_time': '{name} best time to visit weather by season',
+    'travel_tips': '{name} travel tips for tourists what to know before you go',
     'transport': '{name} public transportation getting around guide for tourists',
     'power': '{name} power plug type voltage SIM card eSIM for travelers',
     'currency': '{name} currency cash vs card payment tips for tourists',
@@ -33,6 +34,7 @@ class LlmService {
     'etiquette': "{name} local customs etiquette dos and don'ts for tourists",
     'tipping': '{name} tipping culture custom restaurants taxis',
     'holidays': '{name} public holidays festivals calendar',
+    'history': '{name} history background founding historical significance',
     'visa': '{name} visa requirements for tourists entry rules',
     'stay': '{name} best areas neighborhoods to stay for tourists',
     'cost': '{name} daily travel budget cost of living for tourists',

@@ -75,6 +75,13 @@ jobs:
 
       - run: flutter analyze
 
+      # App launcher icon (đợt 12, CLAUDE.md) — must run after `flutter
+      # create` (android/ has to exist) and `flutter pub get` (needs the
+      # flutter_launcher_icons dev dependency resolved). Source images and
+      # config live in tool/generate_icon.py and pubspec.yaml.
+      - name: dart run flutter_launcher_icons
+        run: dart run flutter_launcher_icons
+
       # App-owned default Weather/Tavily/Groq keys (đợt 9, CLAUDE.md), baked
       # in at build time via --dart-define from GitHub Actions secrets —
       # never committed to the repo. Empty when the secret isn't set, which

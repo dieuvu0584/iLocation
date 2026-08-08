@@ -23,6 +23,53 @@ production-ready dù là 1 người làm.
 
 ## Quyết định đã chốt
 
+### 2026-08-08 (đợt 12) — Thiết kế app icon mới (location pin, đúng bảng màu)
+
+Chủ dự án yêu cầu "tạo và cập nhật app icon phong cách hiện đại, gam màu
+phù hợp, có kèm biểu tượng location".
+
+- **Thiết kế**: 1 map pin (teardrop) màu `accentAmber` (#E8A33D) với lỗ
+  tròn ở giữa màu `bgMid` (#16283A, viền `accentAmberDark`), đặt trên nền
+  gradient chéo `bgDark` (#0A141D) → `bgMid` — đúng bảng màu đã chốt ở
+  `mobile/lib/theme/colors.dart`, không tự bịa màu mới. Có bóng đổ mềm dưới
+  pin để tạo chiều sâu (yêu cầu "hiện đại").
+- **`mobile/tool/generate_icon.py`** (mới, dùng Pillow): script one-off,
+  KHÔNG chạy trong pipeline build — chỉ chạy thủ công khi cần đổi lại thiết
+  kế. Render ở độ phân giải 4x rồi downsample (LANCZOS) để chống răng cưa.
+  Xuất 2 file vào `mobile/assets/icon/`:
+  - `app_icon.png` (1024×1024, nền đầy, bo góc) — icon "legacy"/không phải
+    adaptive, dùng cho `image_path`.
+  - `app_icon_foreground.png` (1024×1024, nền trong suốt, pin thu nhỏ nằm
+    trong vùng an toàn ~66% giữa canvas) — lớp foreground cho Android
+    adaptive icon, tránh bị cắt khi launcher mask theo hình tròn/vuông bo/
+    squircle khác nhau.
+- **`flutter_launcher_icons`** (package mới, dev dependency) sinh icon thật
+  từ 2 file trên — cấu hình nằm ngay trong `pubspec.yaml`
+  (`flutter_launcher_icons:` block): `android: "launcher_icon"` (đặt tên
+  riêng, không ghi đè `ic_launcher` mặc định — package tự cập nhật
+  `android:icon` trong `AndroidManifest.xml` trỏ tới tên mới), `ios: false`
+  (app không build iOS, thư mục `ios/` không được scaffold trong CI nên để
+  `true` sẽ lỗi), `adaptive_icon_background: "#16283A"` (dùng thẳng mã màu,
+  không cần ảnh riêng), `adaptive_icon_foreground` trỏ tới
+  `app_icon_foreground.png`.
+- **CI**: vì `android/` không commit vào repo (regenerate mỗi lần build,
+  xem đợt 4), việc sinh icon PHẢI chạy trong `.github/workflows/build-apk.yml`
+  — thêm step `dart run flutter_launcher_icons` ngay sau `flutter pub get`
+  (cần dependency đã resolve) và sau `flutter create` (cần `android/` đã
+  tồn tại), trước `flutter build apk --release`. Đã verify cục bộ bằng cách
+  tự scaffold `android/` (`flutter create --platforms=android .`) rồi chạy
+  `dart run flutter_launcher_icons` — xác nhận đúng: sinh
+  `mipmap-*/launcher_icon.png` + `mipmap-anydpi-v26/launcher_icon.xml`
+  (adaptive icon) + tự thêm `values/colors.xml` (biến `ic_launcher_background`)
+  + tự sửa `android:icon="@mipmap/launcher_icon"` trong manifest. File
+  `ic_launcher.png` mặc định của Flutter (logo Flutter) vẫn còn trong
+  `mipmap-*/` nhưng không còn được manifest tham chiếu tới — vô hại, không
+  cần dọn.
+- Bảng màu ở `tool/generate_icon.py` chép tay từ `colors.dart` (không import
+  chéo Dart↔Python được) — **nếu sau này đổi `colors.dart`, nhớ sửa cả file
+  Python này rồi chạy lại script + `dart run flutter_launcher_icons`** để
+  icon không bị lệch màu với UI.
+
 ### 2026-08-08 (đợt 11) — Thêm node Travel tips + History; giữ nguyên Currency
 
 Chủ dự án yêu cầu "thêm node thông tin travel, tiền tệ, lịch sử địa điểm".
@@ -552,10 +599,13 @@ lại để biết lý do ban đầu, đừng làm theo #4 nữa:
     /theme
       colors.dart                       # bám theo palette ở SDD mục 9, KHÔNG tự đổi màu
       typography.dart                     # Fraunces (display) + Inter (body), qua google_fonts
-    /data
-      mock_location.dart                    # fixture cho demo, khớp schema ChildItem/Group/LocationResponse
     /assets
       emergency_numbers.json                  # copy từ backend/data/, bundle vào app
+      icon/
+        app_icon.png                            # đợt 12: icon "legacy", nền đầy + bo góc
+        app_icon_foreground.png                   # đợt 12: layer foreground cho Android adaptive icon
+  /tool
+    generate_icon.py                                # đợt 12: script Pillow one-off sinh 2 file icon trên, KHÔNG chạy trong build
 ```
 
 ## Nguyên tắc thiết kế cần giữ khi code

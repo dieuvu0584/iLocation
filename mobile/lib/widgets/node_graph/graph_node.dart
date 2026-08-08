@@ -158,10 +158,13 @@ class RingNode extends StatelessWidget {
         height: size,
         child: Material(
           color: AppColors.cardBg1,
-          shape: const CircleBorder(side: BorderSide(color: AppColors.borderColor)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: const BorderSide(color: AppColors.borderColor),
+          ),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
-            customBorder: const CircleBorder(),
+            customBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             onTap: onTap,
             child: Stack(
               children: [

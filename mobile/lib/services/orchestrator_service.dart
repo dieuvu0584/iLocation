@@ -135,6 +135,8 @@ class OrchestratorService {
         fresh = _photoLinks.getPhotosItem(location.name, location.country);
       } else if (itemId == 'maps') {
         fresh = _mapLinks.getMapsItem(location.lat, location.lng, location.name);
+      } else if (itemId == 'directions') {
+        fresh = _mapLinks.getDirectionsItem(location.lat, location.lng, location.name);
       } else {
         fresh = _timezone.getTimezoneItem(location.lat, location.lng);
       }

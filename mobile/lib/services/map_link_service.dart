@@ -21,4 +21,24 @@ class MapLinkService {
       linkUrl: url,
     );
   }
+
+  /// "How do I get there" — a Google Maps directions link with only the
+  /// destination set. Deliberately omits an origin: Google Maps resolves
+  /// "your location" itself once the link opens on the phone, so this needs
+  /// no on-device geolocation permission/plugin at all, matching this app's
+  /// no-key/static-link pattern.
+  ChildItem getDirectionsItem(double lat, double lng, String locationName) {
+    final url = 'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng';
+
+    return ChildItem(
+      id: 'directions',
+      label: kChildLabels['directions']!,
+      source: 'link',
+      summary: 'Get directions to $locationName from your current location',
+      detail: '',
+      sources: const [],
+      updatedAt: DateTime.now().toUtc(),
+      linkUrl: url,
+    );
+  }
 }

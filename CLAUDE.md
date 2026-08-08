@@ -23,6 +23,74 @@ production-ready dù là 1 người làm.
 
 ## Quyết định đã chốt
 
+### 2026-08-08 (đợt 14) — Audit checklist thông tin cơ bản; node level 2 vuông + giãn cách lỏng
+
+Chủ dự án liệt kê 12 loại thông tin cơ bản cần LUÔN có khi search 1 địa
+điểm, yêu cầu tất cả ở "node level 2" cho tiện check, đổi style node level
+2 về hình vuông (như trước đợt 6), và node level 2 không cần cách đều nhau
+so với level 1.
+
+- **Audit 12 mục yêu cầu**: 8/12 đã có sẵn — lịch sử địa điểm (`history`,
+  đợt 11), Google Maps link (`maps`, đợt 10), signature images link
+  (`photos`, đợt 5), chi phí sinh hoạt (`cost`), tiền tệ & thanh toán
+  (`currency`), điện thoại khẩn cấp (`emergency`), văn hoá địa phương
+  (`etiquette`), đồ ăn phổ biến (`food`) — không cần sửa. 4 mục còn thiếu
+  hoặc chưa đủ, đã bổ sung trong đợt này (xem dưới).
+- **`directions` (mới)** — "di chuyển từ vị trí điện thoại tới đó bằng
+  cách nào" — khác hẳn `transport` (đi lại LOCAL tại điểm đến, đã có).
+  Dùng Google Maps Directions URL **chỉ set destination, bỏ trống origin**
+  (`.../maps/dir/?api=1&destination=lat,lng`) — Google Maps tự động dùng
+  "vị trí hiện tại" của máy khi mở link, nên KHÔNG cần xin quyền định vị
+  hay thêm package `geolocator` nào trong app (setting "Use my location"
+  hiện có trong Privacy chỉ là 1 toggle chưa nối vào logic gì — không đụng
+  tới). Cùng pattern static/link như `maps`/`photos`: thêm vào
+  `MapLinkService.getDirectionsItem()`, `kChildIdsByGroup['explore']`,
+  `kStaticItemIds`, TTL null.
+- **Weather: thêm dự báo 7 ngày** — OpenWeatherMap (BYOK, hiện tại) giữ
+  nguyên cho thời tiết hiện tại; dự báo 7 ngày gọi thêm **Open-Meteo**
+  (open-meteo.com) — **miễn phí, không cần key**, đúng tinh thần ưu tiên
+  provider không-key của dự án (giống Nominatim/Overpass). Gộp vào cùng 1
+  `ChildItem` 'weather' (`detail` field), gọi best-effort — lỗi/timeout gọi
+  Open-Meteo không làm hỏng phần thời tiết hiện tại, chỉ đơn giản thiếu
+  đoạn dự báo. Dùng mã thời tiết WMO chuẩn (`weather_code`) map sang text
+  ngắn (`_wmoWeatherLabels` trong `weather_service.dart`).
+- **`safety_history` (mới)** — "an toàn trong quá khứ", khác `safety_level`
+  hiện có (đang là "an toàn hiện tại"). Mục LLM mới trong nhóm `safety`,
+  query tìm kiếm nền: lịch sử tội phạm/sự kiện an toàn đáng chú ý trong
+  quá khứ. Đồng thời **mở rộng query của `safety_level`** để phủ luôn
+  "thiên tai, chiến tranh" theo đúng yêu cầu (trước đó chỉ có
+  "scams/crime") — không tách riêng thành mục thứ 3 vì cả 2 đều là tình
+  trạng AN TOÀN HIỆN TẠI, chỉ khác góc nhìn (chung chung vs thiên
+  tai/chính trị).
+- **26 → 28 mục con.** `explore` giờ 8 mục, `safety` giờ 6 mục.
+- **Node level 2 đổi lại hình vuông bo góc** (`RoundedRectangleBorder`,
+  radius 20) — đảo ngược phần "hình tròn" của đợt 6, áp dụng cho MỌI
+  `RingNode` (cả khi hiện nhóm lẫn khi hiện mục con — 2 màn dùng chung 1
+  widget, không tách style riêng theo tầng). `CenterNode` (vòng tròn phát
+  sáng ở giữa) giữ nguyên không đổi — chỉ "node level 2" (ring nodes) đổi,
+  không phải "level 1" (center).
+- **Giãn cách "level 2" không còn bắt buộc đều nhau** — đã hỏi lại chủ dự
+  án giữa 2 phương án (vẫn là đồ thị nhưng nới lỏng giãn cách, hay chuyển
+  hẳn sang lưới card không đường nối) vì đây là quyết định ảnh hưởng tới
+  bản sắc UI cốt lõi của app (node-graph, không phải list truyền thống —
+  nguyên tắc đầu tiên trong "Bối cảnh dự án"). Chủ dự án chọn **giữ đồ thị,
+  nới lỏng giãn cách** — `ring_layout.dart` có hàm mới
+  `relaxedRingPositions()` thay cho `ringPositions()` (đã xoá hẳn, không
+  còn nơi nào gọi): áp dụng lệch góc + hệ số bán kính xen kẽ theo index
+  (`angleJitter`/`radiusFactor`, deterministic — không đổi giữa các lần
+  render), thay vì chia đều tuyệt đối `2*pi/count`. Vẫn giữ đường nối từ
+  tâm (`ConnectorPainter`) và cảm giác "graph" đặc trưng của app — chỉ bỏ
+  yêu cầu chia đều góc/bán kính, không đổi kiến trúc màn hình. Đã tăng
+  margin trừ bán kính (56→64) và giảm trần clamp (190→178) để chừa chỗ cho
+  hệ số bán kính ngoài (1.06x) không bị tràn ra rìa màn hình khi 1 nhóm có
+  nhiều mục con (vd `explore` giờ 8 mục).
+- **Đã verify trực quan cục bộ** bằng cách build Linux desktop thật với 1
+  entrypoint preview tạm (`lib/_preview_graph.dart`, đã xoá sau khi xong,
+  theo đúng pattern preview file tạm đã dùng ở đợt 7) + Xvfb + `import`
+  chụp ảnh — xác nhận: node vuông bo góc, giãn cách rõ ràng không đều, 8
+  mục trong `explore` không chồng/không tràn viền, node "Get there" hiện
+  đúng icon+nhãn.
+
 ### 2026-08-08 (đợt 13) — Đổi tên app hiển thị thành "Location Explorer"
 
 Chủ dự án yêu cầu "đổi tên app thành Location Explorer".
@@ -333,6 +401,10 @@ nào trên toàn app đổi kích thước, dù giá trị `fontScale` trong sta
 
 ### 2026-08-05 (đợt 6) — Node hình tròn, bỏ nút demo, sửa bug Hotels không ra dữ liệu
 
+**Phần "hình tròn" bên dưới đã bị ĐẢO NGƯỢC ở đợt 14** (node level 2 quay
+lại hình vuông bo góc) — đừng làm theo phần này nữa, chỉ giữ lại để biết
+lý do ban đầu.
+
 Phản hồi tiếp theo từ thiết bị thật sau đợt 5 (screenshot node-graph +
 "vẫn chưa thấy thông tin khách sạn"):
 
@@ -638,12 +710,12 @@ lại để biết lý do ban đầu, đừng làm theo #4 nữa:
 
 ## Nguyên tắc thiết kế cần giữ khi code
 
-1. **Không phải mọi mục thông tin đều gọi LLM.** Tổng cộng có 26 mục con
+1. **Không phải mọi mục thông tin đều gọi LLM.** Tổng cộng có 28 mục con
    (`kChildIdsByGroup`). 4 mục (Places, Weather, Airport, Hotels) gọi API
-   structured trực tiếp (`kApiItemIds`); 4 mục (Timezone, Emergency,
-   Signature photos, Google Maps) tính/tra cứu/dựng URL offline không qua
-   LLM, không cần key (`kStaticItemIds`). Chỉ 18/26 mục còn lại mới qua LLM
-   (`kLlmItemIds`). Đừng gộp chung logic.
+   structured trực tiếp (`kApiItemIds`); 5 mục (Timezone, Emergency,
+   Signature photos, Google Maps, Get there/directions) tính/tra cứu/dựng
+   URL offline không qua LLM, không cần key (`kStaticItemIds`). Chỉ 19/28
+   mục còn lại mới qua LLM (`kLlmItemIds`). Đừng gộp chung logic.
 
 2. **Số khẩn cấp và visa là dữ liệu rủi ro cao.** Emergency dùng bảng tra
    cứu tĩnh (`mobile/assets/emergency_numbers.json`), không qua LLM, không

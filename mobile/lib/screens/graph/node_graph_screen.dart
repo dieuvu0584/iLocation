@@ -120,7 +120,10 @@ class _NodeGraphScreenState extends State<NodeGraphScreen> with SingleTickerProv
         return LayoutBuilder(
           builder: (context, constraints) {
             final size = constraints.biggest;
-            final radius = (size.shortestSide / 2 - 56).clamp(112.0, 190.0);
+            // Extra margin (64 vs the previous 56) leaves headroom for
+            // relaxedRingPositions' outer band (up to 1.06x) without nodes
+            // clipping off the edge of the graph.
+            final radius = (size.shortestSide / 2 - 64).clamp(108.0, 178.0);
 
             final List<_NodeSpec> ringSpecs;
             final String centerLabel;
@@ -140,7 +143,7 @@ class _NodeGraphScreenState extends State<NodeGraphScreen> with SingleTickerProv
                   .toList();
             }
 
-            final positions = ringPositions(ringSpecs.length, radius);
+            final positions = relaxedRingPositions(ringSpecs.length, radius);
 
             return Center(
               child: SizedBox(

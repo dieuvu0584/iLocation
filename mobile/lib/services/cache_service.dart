@@ -27,6 +27,7 @@ class CacheService {
     'tipping': Duration(days: 90),
     'holidays': Duration(days: 90),
     'history': Duration(days: 90),
+    'safety_history': Duration(days: 90),
     'timezone': Duration(days: 90),
     // Needs-to-be-fresher content: 14 days
     'transport': Duration(days: 14),
@@ -43,6 +44,7 @@ class CacheService {
     'emergency': null,
     'photos': null,
     'maps': null,
+    'directions': null,
   };
 
   static const Duration _defaultTtl = Duration(days: 14);

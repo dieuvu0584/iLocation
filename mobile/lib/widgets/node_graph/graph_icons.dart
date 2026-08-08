@@ -23,6 +23,7 @@ const Map<String, IconData> kChildIcons = {
   'currency': Icons.attach_money_outlined,
   'timezone': Icons.schedule_outlined,
   'safety_level': Icons.shield_outlined,
+  'safety_history': Icons.history_toggle_off_outlined,
   'health': Icons.local_hospital_outlined,
   'water': Icons.water_drop_outlined,
   'insurance': Icons.verified_user_outlined,
@@ -39,6 +40,7 @@ const Map<String, IconData> kChildIcons = {
   'hotels': Icons.bed_outlined,
   'photos': Icons.photo_library_outlined,
   'maps': Icons.map_outlined,
+  'directions': Icons.directions_outlined,
 };
 
 IconData iconForGroup(String groupId) => kGroupIcons[groupId] ?? Icons.circle_outlined;

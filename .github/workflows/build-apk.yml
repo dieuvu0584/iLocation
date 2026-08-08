@@ -43,6 +43,16 @@ jobs:
           sed -i 's|    </queries>|        <intent>\n            <action android:name="android.intent.action.VIEW"/>\n            <data android:scheme="https"/>\n        </intent>\n    </queries>|' android/app/src/main/AndroidManifest.xml
           grep 'android.intent.action.VIEW' android/app/src/main/AndroidManifest.xml
 
+      # đợt 13, CLAUDE.md: `flutter create` sets the OS-level app label
+      # (home screen icon caption, app switcher, system Settings app list)
+      # to the raw --project-name ("ilocation") — different from the
+      # in-app title (l10n `appTitle`, already "Location Explorer"). Patch
+      # it to match.
+      - name: set Android app label to "Location Explorer"
+        run: |
+          sed -i 's|android:label="ilocation"|android:label="Location Explorer"|' android/app/src/main/AndroidManifest.xml
+          grep 'android:label="Location Explorer"' android/app/src/main/AndroidManifest.xml
+
       # Firebase Remote Config (đợt 8, CLAUDE.md) supplies app-owned default
       # Weather/Tavily/Groq keys so the app works without the user entering
       # their own BYOK key. Entirely optional: `android/` isn't committed

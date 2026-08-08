@@ -23,6 +23,34 @@ production-ready dù là 1 người làm.
 
 ## Quyết định đã chốt
 
+### 2026-08-08 (đợt 13) — Đổi tên app hiển thị thành "Location Explorer"
+
+Chủ dự án yêu cầu "đổi tên app thành Location Explorer".
+
+- **Tên trong app (MaterialApp `title`) và l10n (`appTitle`) đã ĐÚNG sẵn**
+  — cả 2 đều đã là "Location Explorer" từ trước, không cần sửa gì ở tầng
+  Flutter/Dart.
+- **Vấn đề thật sự nằm ở tên hiển thị cấp hệ điều hành Android**
+  (`android:label` trong `AndroidManifest.xml` — tên hiện dưới icon ở màn
+  hình chính, trong app switcher, và trong danh sách app của Settings).
+  `flutter create --project-name ilocation` (chạy lại mỗi lần build vì
+  `android/` không commit — xem đợt 4) đặt `android:label="ilocation"` (tên
+  package thô, chữ thường), khác hẳn tên hiển thị trong app.
+- **Sửa bằng `sed`** trong `.github/workflows/build-apk.yml`, thêm step mới
+  ngay sau step "add ACTION_VIEW query" — pattern giống hệt các lần vá
+  `AndroidManifest.xml` trước (đợt 4 INTERNET permission, đợt 5 ACTION_VIEW
+  query): `sed -i 's|android:label="ilocation"|android:label="Location
+  Explorer"|'`, có `grep` xác nhận sau để build FAIL RÕ RÀNG nếu template
+  Flutter version sau này đổi khác. Đã verify cục bộ bằng cách tự scaffold
+  `android/` rồi chạy sed thật, xác nhận đúng.
+- **KHÔNG đổi** `pubspec.yaml` `name: ilocation` (định danh package Dart
+  nội bộ, dùng trong mọi `package:ilocation/...` import xuyên suốt
+  codebase — đổi cái này là 1 refactor lớn, rủi ro cao, và người dùng cuối
+  không bao giờ nhìn thấy giá trị này) và **KHÔNG đổi** tên artifact CI
+  `ilocation-release-apk` (chỉ là tên file build nội bộ trong GitHub
+  Actions, không phải "tên app"). Đây là phạm vi tối thiểu đúng với yêu cầu
+  "đổi tên app" — chỉ sửa những gì người dùng thực sự nhìn thấy.
+
 ### 2026-08-08 (đợt 12) — Thiết kế app icon mới (location pin, đúng bảng màu)
 
 Chủ dự án yêu cầu "tạo và cập nhật app icon phong cách hiện đại, gam màu

@@ -40,6 +40,7 @@ class CacheService {
     // Static lookup table / deterministic link, never expires via TTL
     'emergency': null,
     'photos': null,
+    'maps': null,
   };
 
   static const Duration _defaultTtl = Duration(days: 14);

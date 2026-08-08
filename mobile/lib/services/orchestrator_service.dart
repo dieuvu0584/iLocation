@@ -3,6 +3,7 @@ import '../models/settings_models.dart';
 import 'cache_service.dart';
 import 'emergency_service.dart';
 import 'llm_service.dart';
+import 'map_link_service.dart';
 import 'photo_link_service.dart';
 import 'places_service.dart';
 import 'timezone_service.dart';
@@ -20,6 +21,7 @@ class OrchestratorService {
   final TimezoneService _timezone;
   final EmergencyService _emergency;
   final PhotoLinkService _photoLinks;
+  final MapLinkService _mapLinks;
   final WebSearchService _search;
   final LlmService _llm;
 
@@ -30,6 +32,7 @@ class OrchestratorService {
     TimezoneService? timezone,
     EmergencyService? emergency,
     PhotoLinkService? photoLinks,
+    MapLinkService? mapLinks,
     WebSearchService? search,
     LlmService? llm,
   })  : _cache = cache ?? CacheService(),
@@ -38,6 +41,7 @@ class OrchestratorService {
         _timezone = timezone ?? TimezoneService(),
         _emergency = emergency ?? EmergencyService(),
         _photoLinks = photoLinks ?? PhotoLinkService(),
+        _mapLinks = mapLinks ?? MapLinkService(),
         _search = search ?? WebSearchService(),
         _llm = llm ?? LlmService();
 
@@ -129,6 +133,8 @@ class OrchestratorService {
         fresh = await _emergency.getEmergencyItem(location.countryCode);
       } else if (itemId == 'photos') {
         fresh = _photoLinks.getPhotosItem(location.name, location.country);
+      } else if (itemId == 'maps') {
+        fresh = _mapLinks.getMapsItem(location.lat, location.lng, location.name);
       } else {
         fresh = _timezone.getTimezoneItem(location.lat, location.lng);
       }

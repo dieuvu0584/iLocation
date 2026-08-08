@@ -23,6 +23,53 @@ production-ready dù là 1 người làm.
 
 ## Quyết định đã chốt
 
+### 2026-08-07 (đợt 10) — Khoá cứng Trợ lý AI = Groq luôn bật, ẩn màn hình cài đặt; thêm node Google Maps
+
+Sau khi xác nhận đã tự thêm xong 3 GitHub Actions secret (đợt 9), chủ dự án
+yêu cầu tiếp trong 1 message: (1) Trợ lý AI (LLM) luôn bật với Groq key,
+detail level = "chi tiết" (`detailed`), hiện nguồn (`showSources`), và ẩn
+hẳn màn hình cài đặt Trợ lý AI; (2) thêm 1 node "Google Maps" vào node-graph
+khi xem 1 địa điểm.
+
+- **Khoá cứng 4 giá trị**: `AppSettings.llmEnabled`/`llmProvider`/
+  `detailLevel`/`showSources` giờ là getter hardcode (`true`/
+  `ByokProvider.groq`/`DetailLevel.detailed`/`true`), KHÔNG còn đọc từ
+  `SettingsService`/SharedPreferences nữa — đảm bảo đúng behavior "LUÔN"
+  bật bất kể giá trị đã lưu trước đó từ khi màn hình còn tồn tại (nếu chỉ
+  đổi default mà vẫn đọc pref cũ, người dùng đã từng tắt/đổi provider sẽ
+  không được áp dụng giá trị mới). Các setter tương ứng
+  (`setLlmEnabled`/`setLlmProvider`/`setDetailLevel`/`setShowSources`) đã
+  xoá luôn khỏi `AppSettings` vì không còn nơi nào gọi. `SettingsService`
+  (tầng SharedPreferences bên dưới) vẫn giữ nguyên các field này — không
+  xoá — phòng khi sau này cần cho cấu hình lại được.
+- **Xoá hẳn `llm_settings_screen.dart`** và bỏ tile "AI Assistant" khỏi
+  `settings_home_screen.dart` — toàn bộ nội dung màn hình đó (chọn
+  provider, nhập key, detail level, show sources) đều đã bị khoá cứng nên
+  không còn gì để hiển thị, theo đúng pattern đã làm với
+  `api_keys_settings_screen.dart` ở đợt 9. `getLlmApiKey`/`setLlmApiKey`
+  vẫn giữ trong `AppSettings` (không xoá) — `buildRequestSettings()` vẫn
+  gọi để tôn trọng key Groq người dùng có thể đã tự lưu từ trước khi màn
+  hình bị ẩn, y hệt lý do giữ lại `getWeatherApiKey`/`getSearchApiKey` ở
+  đợt 9. Xoá luôn `widgets/common/get_api_key_link.dart` — sau khi màn
+  hình Trợ lý AI biến mất, đây là nơi gọi widget này cuối cùng còn lại
+  trong app (API Keys screen đã xoá ở đợt 9), không còn chỗ nào dùng nữa.
+- **Node "Google Maps" mới trong nhóm `explore`** (6 mục, từ 5) — cùng
+  pattern với `photos` (đợt 5): loại `source: 'link'`, không qua LLM,
+  không cần key, không có TTL (deterministic, không bao giờ "cũ").
+  `MapLinkService` (`mobile/lib/services/map_link_service.dart`, mới) dựng
+  URL từ **toạ độ** (`https://www.google.com/maps/search/?api=1&query=lat,lng`,
+  theo đúng Google Maps URL API chính thức) thay vì tên địa điểm — chính
+  xác hơn `photos` (tránh trùng tên địa điểm ở nơi khác trên thế giới).
+  Wiring giống hệt `photos`: thêm vào `kChildIdsByGroup['explore']`,
+  `kStaticItemIds`, `kChildLabels`, `graph_icons.dart`
+  (`Icons.map_outlined`), `CacheService.ttlByItem` (`'maps': null`), và
+  nhánh `else if (itemId == 'maps')` trong
+  `OrchestratorService._resolveItem`. **Không cần migration schema** —
+  tái dùng cột `link_url` đã có sẵn từ `photos` (đợt 5).
+- Layout node-graph (`ring_layout.dart`) tự chia đều theo `2*pi/count`,
+  không hardcode số lượng mục — thêm mục thứ 6 vào `explore` không cần sửa
+  gì ở tầng layout.
+
 ### 2026-08-06 (đợt 9) — Bỏ qua Firebase, dùng key mặc định qua `--dart-define` ở CI; ẩn 3 ô nhập key
 
 Ngay sau đợt 8, chủ dự án dán LẠI 3 key thật (Weather/Tavily/Groq — cùng 3
@@ -389,12 +436,14 @@ lại để biết lý do ban đầu, đừng làm theo #4 nữa:
 - **Places/Geocoding**: OpenStreetMap (Nominatim + Overpass API) — miễn phí,
   KHÔNG cần API key (đã chốt đợt 3, đổi từ Google). Đừng đổi lại Google
   hoặc thêm key requirement cho mục này mà không hỏi lại.
-- **LLM**: người dùng tự chọn provider (Gemini / Groq / OpenRouter /
-  OpenAI) + tự nhập key — key riêng của người dùng LUÔN được ưu tiên; nếu
-  chọn Groq và bỏ trống, rơi xuống default key của app qua Firebase Remote
-  Config (đợt 8) — 3 provider LLM còn lại không có default, vẫn BYOK thuần.
-  Ô nhập key riêng cho LLM chỉ ẩn khi provider là Groq (đợt 9) — 3 provider
-  kia vẫn hiện ô nhập vì không có default.
+- **LLM**: KHÔNG còn cho người dùng chọn provider — khoá cứng LUÔN bật với
+  Groq (`AppSettings.llmEnabled`/`llmProvider` hardcode, đợt 10), dùng
+  default key qua `--dart-define` (đợt 9) → Firebase Remote Config (đợt 8).
+  `detailLevel`/`showSources` cũng khoá cứng (`detailed`/`true`). Màn hình
+  "AI Assistant" đã xoá hẳn (đợt 10) — không còn cách nào trong app để tắt
+  LLM, đổi provider, hay tự nhập key khác. Gemini/OpenRouter/OpenAI vẫn còn
+  trong enum `ByokProvider` (không xoá, đề phòng cần bật lại chọn provider
+  sau này) nhưng không còn đường nào trong UI để chọn tới chúng.
 - **Web search**: Tavily — không còn ô nhập key trong app (đợt 9, đã ẩn UI).
   Thứ tự nguồn key: key người dùng đã lưu trước đó (nếu có) → build-time
   default qua `--dart-define` (đợt 9) → Firebase Remote Config (đợt 8);
@@ -433,9 +482,8 @@ lại để biết lý do ban đầu, đừng làm theo #4 nữa:
       graph/               # Node-graph 2-tier (node_graph_screen.dart, detail_panel.dart)
       settings/
         language_settings_screen.dart
-        llm_settings_screen.dart      # provider + (chỉ hiện ô key khi KHÔNG phải Groq, đợt 9), detail level, show sources
         privacy_settings_screen.dart
-        settings_home_screen.dart
+        settings_home_screen.dart      # KHÔNG còn tile "AI Assistant" (đợt 10) lẫn "API Keys" (đợt 9)
       search/               # search_screen.dart — đơn giản, chức năng
       history/                # history_screen.dart — tương tự
     /widgets
@@ -455,6 +503,7 @@ lại để biết lý do ban đầu, đừng làm theo #4 nữa:
       timezone_service.dart                    # offline, tính gần đúng từ kinh độ
       emergency_service.dart                     # tra bảng tĩnh, bundle JSON asset
       photo_link_service.dart                      # dựng URL Google Images từ tên+quốc gia, KHÔNG key, KHÔNG LLM
+      map_link_service.dart                          # đợt 10: dựng URL Google Maps từ toạ độ, KHÔNG key, KHÔNG LLM
       orchestrator_service.dart                    # Dart port của backend/app/services/orchestrator.py
       secure_storage.dart                            # API key BYOK còn lại (LLM + Weather + Search)
       remote_config_service.dart                       # Firebase Remote Config — default key Weather/Tavily/Groq (đợt 8), fail-safe
@@ -475,10 +524,12 @@ lại để biết lý do ban đầu, đừng làm theo #4 nữa:
 
 ## Nguyên tắc thiết kế cần giữ khi code
 
-1. **Không phải mọi mục thông tin đều gọi LLM.** Tổng cộng có 21 mục con.
-   3 mục (Places, Weather, Airport) gọi API structured trực tiếp; 2 mục
-   (Timezone, Emergency) tính/tra cứu offline không qua LLM, không cần key.
-   Chỉ 16/21 mục còn lại mới qua LLM. Đừng gộp chung logic.
+1. **Không phải mọi mục thông tin đều gọi LLM.** Tổng cộng có 24 mục con
+   (`kChildIdsByGroup`). 4 mục (Places, Weather, Airport, Hotels) gọi API
+   structured trực tiếp (`kApiItemIds`); 4 mục (Timezone, Emergency,
+   Signature photos, Google Maps) tính/tra cứu/dựng URL offline không qua
+   LLM, không cần key (`kStaticItemIds`). Chỉ 16/24 mục còn lại mới qua LLM
+   (`kLlmItemIds`). Đừng gộp chung logic.
 
 2. **Số khẩn cấp và visa là dữ liệu rủi ro cao.** Emergency dùng bảng tra
    cứu tĩnh (`mobile/assets/emergency_numbers.json`), không qua LLM, không

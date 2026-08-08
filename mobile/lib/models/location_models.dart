@@ -5,7 +5,7 @@ library;
 const List<String> kGroupIds = ['explore', 'practical', 'safety', 'culture', 'entry_stay'];
 
 const Map<String, List<String>> kChildIdsByGroup = {
-  'explore': ['places', 'food', 'best_time', 'hotels', 'photos'],
+  'explore': ['places', 'food', 'best_time', 'hotels', 'photos', 'maps'],
   'practical': ['weather', 'transport', 'power', 'currency', 'timezone'],
   'safety': ['safety_level', 'health', 'water', 'insurance', 'emergency'],
   'culture': ['language', 'etiquette', 'tipping', 'holidays'],
@@ -16,7 +16,7 @@ const Map<String, List<String>> kChildIdsByGroup = {
 const Set<String> kApiItemIds = {'places', 'weather', 'airport', 'hotels'};
 
 /// Items computed/looked up on-device, no network call, never sent to the LLM.
-const Set<String> kStaticItemIds = {'emergency', 'timezone', 'photos'};
+const Set<String> kStaticItemIds = {'emergency', 'timezone', 'photos', 'maps'};
 
 /// Everything else is LLM-summarized from web search results.
 const Set<String> kLlmItemIds = {
@@ -60,6 +60,7 @@ const Map<String, String> kChildLabels = {
   'cost': 'Cost of living',
   'hotels': 'Hotels',
   'photos': 'Signature photos',
+  'maps': 'Google Maps',
 };
 
 class LocationInfo {

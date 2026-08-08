@@ -63,17 +63,16 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool get llmEnabled => _settings.llmEnabled;
-  Future<void> setLlmEnabled(bool value) async {
-    await _settings.setLlmEnabled(value);
-    notifyListeners();
-  }
+  /// Always on with Groq (đợt 10, CLAUDE.md) — the AI Assistant screen that
+  /// used to let a user disable it, switch provider, or change these was
+  /// removed, so these are no longer settings so much as fixed behavior.
+  /// `_settings.llmEnabled`/`byokProvider` are intentionally unused now;
+  /// SettingsService keeps the underlying prefs storage in case this is
+  /// ever made configurable again, but nothing reads it while these are
+  /// hardcoded.
+  bool get llmEnabled => true;
 
-  ByokProvider get llmProvider => _settings.byokProvider;
-  Future<void> setLlmProvider(ByokProvider provider) async {
-    await _settings.setByokProvider(provider);
-    notifyListeners();
-  }
+  ByokProvider get llmProvider => ByokProvider.groq;
 
   Future<String?> getLlmApiKey() => _secureStorage.readLlmApiKey();
   Future<void> setLlmApiKey(String apiKey) async {
@@ -93,17 +92,9 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
   }
 
-  DetailLevel get detailLevel => _settings.detailLevel;
-  Future<void> setDetailLevel(DetailLevel level) async {
-    await _settings.setDetailLevel(level);
-    notifyListeners();
-  }
+  DetailLevel get detailLevel => DetailLevel.detailed;
 
-  bool get showSources => _settings.showSources;
-  Future<void> setShowSources(bool value) async {
-    await _settings.setShowSources(value);
-    notifyListeners();
-  }
+  bool get showSources => true;
 
   bool get gpsEnabled => _settings.gpsEnabled;
   Future<void> setGpsEnabled(bool value) async {

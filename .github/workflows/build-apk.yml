@@ -53,6 +53,54 @@ jobs:
           sed -i 's|android:label="ilocation"|android:label="Location Explorer"|' android/app/src/main/AndroidManifest.xml
           grep 'android:label="Location Explorer"' android/app/src/main/AndroidManifest.xml
 
+      # Play Store release signing (đợt 15, CLAUDE.md). The debug-signed
+      # release build that already exists here is fine for sideloading a
+      # test APK, but Google Play rejects debug-signed uploads outright —
+      # this wires a real signingConfig that Play accepts, without ever
+      # putting the keystore or its passwords in the repo. The Gradle patch
+      # always runs (harmless with no secret: `keystorePropertiesFile.exists()`
+      # is false, so buildTypes.release falls back to the debug signing
+      # config exactly as before — same secret-presence-gates-behavior
+      # pattern as Firebase/BuildTimeDefaults elsewhere in this workflow).
+      - name: patch build.gradle.kts for conditional Play Store release signing
+        run: |
+          grep -q 'keystorePropertiesFile' android/app/build.gradle.kts || \
+          sed -i 's|plugins {|import java.util.Properties\nimport java.io.FileInputStream\n\nval keystorePropertiesFile = rootProject.file("key.properties")\nval keystoreProperties = Properties()\nif (keystorePropertiesFile.exists()) {\n    keystoreProperties.load(FileInputStream(keystorePropertiesFile))\n}\n\nplugins {|' android/app/build.gradle.kts
+          grep 'keystorePropertiesFile' android/app/build.gradle.kts
+
+          grep -q 'signingConfigs {' android/app/build.gradle.kts || \
+          sed -i 's|    buildTypes {|    signingConfigs {\n        create("release") {\n            keyAlias = keystoreProperties["keyAlias"] as String?\n            keyPassword = keystoreProperties["keyPassword"] as String?\n            storeFile = keystoreProperties["storeFile"]?.let { file(it) }\n            storePassword = keystoreProperties["storePassword"] as String?\n        }\n    }\n\n    buildTypes {|' android/app/build.gradle.kts
+          grep 'signingConfigs {' android/app/build.gradle.kts
+
+          sed -i 's|signingConfig = signingConfigs.getByName("debug")|signingConfig = if (keystorePropertiesFile.exists()) signingConfigs.getByName("release") else signingConfigs.getByName("debug")|' android/app/build.gradle.kts
+          grep 'keystorePropertiesFile.exists()) signingConfigs.getByName("release")' android/app/build.gradle.kts
+
+      # Writes the actual keystore + key.properties android/key.properties
+      # expects, from 4 GitHub Actions secrets — skipped entirely if they
+      # aren't set yet, in which case the release build type above just
+      # keeps using the debug signing config (no change from before this
+      # feature existed). Chủ dự án tự thêm 4 secret này (Claude không tạo
+      # được): ANDROID_KEYSTORE_BASE64 (base64 của file .jks upload key),
+      # ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD.
+      - name: write Android upload keystore from secret (Play Store release signing — skipped if secret not set)
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "ANDROID_KEYSTORE_BASE64 not set — skipping Play Store signing, release build stays debug-signed."
+            exit 0
+          fi
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=upload-keystore.jks
+          EOF
+
       # Firebase Remote Config (đợt 8, CLAUDE.md) supplies app-owned default
       # Weather/Tavily/Groq keys so the app works without the user entering
       # their own BYOK key. Entirely optional: `android/` isn't committed
@@ -113,3 +161,31 @@ jobs:
           name: ilocation-release-apk
           path: mobile/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
+
+      # Google Play requires an Android App Bundle (.aab), not an .apk, for
+      # new app submissions — this is the file that actually goes to Play
+      # Console. Only meaningful once real signing is configured above, so
+      # it's skipped (not just built-but-unsigned) when the keystore secret
+      # isn't set yet — an unsigned/debug-signed .aab would just be
+      # rejected by Play anyway.
+      - name: flutter build appbundle --release (for Play Store — skipped if keystore secret not set)
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          DEFAULT_WEATHER_API_KEY: ${{ secrets.DEFAULT_WEATHER_API_KEY }}
+          DEFAULT_TAVILY_API_KEY: ${{ secrets.DEFAULT_TAVILY_API_KEY }}
+          DEFAULT_GROQ_API_KEY: ${{ secrets.DEFAULT_GROQ_API_KEY }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "ANDROID_KEYSTORE_BASE64 not set — skipping .aab build (Play Store submission needs real signing first)."
+            exit 0
+          fi
+          flutter build appbundle --release \
+            --dart-define=DEFAULT_WEATHER_API_KEY="$DEFAULT_WEATHER_API_KEY" \
+            --dart-define=DEFAULT_TAVILY_API_KEY="$DEFAULT_TAVILY_API_KEY" \
+            --dart-define=DEFAULT_GROQ_API_KEY="$DEFAULT_GROQ_API_KEY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ilocation-release-aab
+          path: mobile/build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: warn

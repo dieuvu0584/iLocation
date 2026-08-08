@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Location Explorer</title>
+<style>
+  :root {
+    --bg-dark: #0A141D;
+    --bg-mid: #16283A;
+    --card-bg: #1B2E3D;
+    --accent: #E8A33D;
+    --accent-dark: #C97C2E;
+    --text-primary: #EDEAE3;
+    --text-muted: #9FB6C6;
+    --border: #2A4356;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: linear-gradient(160deg, var(--bg-dark), var(--bg-mid));
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+  h1 {
+    font-size: 28px;
+    margin-bottom: 4px;
+  }
+  .updated {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+  h2 {
+    font-size: 19px;
+    margin-top: 36px;
+    margin-bottom: 10px;
+    color: var(--accent);
+  }
+  p, li { color: var(--text-primary); }
+  ul { padding-left: 20px; }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 12px 0;
+  }
+  .card strong { color: var(--accent); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  th { color: var(--text-muted); font-weight: 600; }
+  a { color: var(--accent); }
+  footer {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Privacy Policy</h1>
+  <div class="updated">Location Explorer — last updated August 8, 2026</div>
+
+  <p>Location Explorer ("the app") is a travel-information lookup app. This
+  page explains what information the app handles and how, in plain terms.</p>
+
+  <h2>Overview</h2>
+  <p>The app is <strong>client-only</strong> — there is no backend server
+  operated by the app that stores your data. Everything the app remembers
+  (search history, cached location results, your settings) is stored
+  locally on your device. The app does not require creating an account and
+  does not include ads or analytics/tracking SDKs.</p>
+
+  <h2>Information you provide</h2>
+  <p>When you search for a place, the app sends your search text and/or the
+  resulting coordinates to the third-party services listed below, in order
+  to look up information about that place. The app does not collect your
+  name, email, or any other personal identifier — it only knows the places
+  you search for.</p>
+
+  <h2>Device location</h2>
+  <div class="card">
+    The app does <strong>not</strong> access your device's GPS/precise
+    location. Every location lookup is based only on the place name you
+    type into the search box.
+  </div>
+
+  <h2>Third-party services</h2>
+  <p>Depending on what information you look up for a place, the app sends
+  the place name and/or its coordinates directly from your device to one or
+  more of the following services:</p>
+  <table>
+    <tr><th>Service</th><th>Used for</th><th>What's sent</th></tr>
+    <tr><td>OpenStreetMap (Nominatim / Overpass)</td><td>Search, nearby places, airport, hotels</td><td>Search text, coordinates</td></tr>
+    <tr><td>OpenWeatherMap</td><td>Current weather</td><td>Coordinates</td></tr>
+    <tr><td>Open-Meteo</td><td>7-day weather forecast</td><td>Coordinates</td></tr>
+    <tr><td>Tavily</td><td>Web search grounding for AI-summarized content (optional)</td><td>Generated search queries</td></tr>
+    <tr><td>Groq, or another AI provider you choose (Gemini / OpenRouter / OpenAI)</td><td>Generating travel-info summaries</td><td>Place name, web search snippets</td></tr>
+    <tr><td>Firebase Remote Config</td><td>Optional app configuration</td><td>No personal data — fetches static config values only</td></tr>
+  </table>
+  <p>Each of these is a request straight from your device to that provider —
+  the app itself never sees or stores this traffic anywhere else. Use of
+  each service is subject to that provider's own privacy policy.</p>
+
+  <h2>API keys</h2>
+  <p>If you enter your own API key for a provider, it is stored only in
+  your device's secure, encrypted storage (Android Keystore-backed) and is
+  sent only to that provider when making a request on your behalf. It is
+  never transmitted anywhere else.</p>
+
+  <h2>Data stored on your device</h2>
+  <ul>
+    <li>Cached results for places you've looked up (so repeat lookups are
+    fast and work offline for a while)</li>
+    <li>Your search history</li>
+    <li>Your app settings (language, units, etc.)</li>
+  </ul>
+  <p>You can clear the cache and search history at any time from
+  Settings → Data &amp; Privacy. Uninstalling the app removes all of this
+  data from your device.</p>
+
+  <h2>Children's privacy</h2>
+  <p>The app is not directed at children under 13 and does not knowingly
+  collect information from them.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>If this policy changes, the updated version will be posted at this
+  same URL with a new "last updated" date.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy: <a href="mailto:dieuvu0584@gmail.com">dieuvu0584@gmail.com</a></p>
+
+  <footer>Location Explorer</footer>
+</div>
+</body>
+</html>

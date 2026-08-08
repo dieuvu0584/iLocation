@@ -23,6 +23,70 @@ production-ready dù là 1 người làm.
 
 ## Quyết định đã chốt
 
+### 2026-08-08 (đợt 15) — Chuẩn bị publish Google Play: ký release thật + Privacy Policy
+
+Chủ dự án xác nhận đã có sẵn tài khoản Google Play Console, yêu cầu code
+xong phần chuẩn bị kỹ thuật, và tự thêm GitHub secret. Trước đó đã phát
+hiện: CI build `.apk` release đang ký bằng **debug key**
+(`signingConfig = signingConfigs.getByName("debug")` mặc định của
+`flutter create`) — Play Console từ chối thẳng build ký bằng debug key.
+
+- **Ký release thật, có điều kiện** (`android/app/build.gradle.kts`, vá
+  qua `sed` trong CI vì `android/` không commit — xem đợt 4): thêm
+  `signingConfigs.create("release")` đọc từ `android/key.properties`
+  (`keyAlias`/`keyPassword`/`storeFile`/`storePassword`), và
+  `buildTypes.release.signingConfig` giờ là biểu thức điều kiện:
+  `if (keystorePropertiesFile.exists()) signingConfigs.getByName("release")
+  else signingConfigs.getByName("debug")` — đúng pattern "gate theo secret,
+  không có secret thì rơi về hành vi cũ" đã dùng cho Firebase/BuildTimeDefaults
+  (đợt 8/9). Nghĩa là: chưa thêm secret → build `.apk` test vẫn ký debug
+  như trước, không có gì hỏng; thêm secret xong → CẢ `.apk` test lẫn
+  `.aab` Play Store đều tự động ký bằng key thật.
+- **4 GitHub secret chủ dự án cần tự thêm** (Claude không tạo được):
+  `ANDROID_KEYSTORE_BASE64` (nội dung file `.jks` encode base64),
+  `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`.
+  Tạo keystore bằng lệnh chuẩn của Android:
+  `keytool -genkey -v -keystore upload-keystore.jks -keyalg RSA -keysize 2048
+  -validity 10000 -alias upload` — **Claude không tự tạo keystore hộ**, vì
+  đây là khoá ký duy nhất cho vòng đời app trên Play Store (mất là không
+  bao giờ update lại được app dưới cùng listing nữa), phải do chính chủ
+  dự án tạo và giữ, không phải thứ nên đi qua tay AI.
+- **Thêm bước build `.aab`** (Android App Bundle) — Play Store bắt buộc
+  định dạng này cho app mới từ 2021, khác `.apk` (vẫn giữ `.apk` cho mục
+  đích test/sideload như cũ, không đụng tới). Bước build `.aab` SKIP hẳn
+  (không chỉ build ký sai) nếu chưa có secret `ANDROID_KEYSTORE_BASE64` —
+  build `.aab` ký debug không có ý nghĩa gì vì Play sẽ từ chối, nên không
+  tốn công build. `upload-artifact` cho `.aab` dùng
+  `if-no-files-found: warn` (không phải `error`) để không làm fail cả
+  workflow khi bước build bị skip.
+- **Đã verify cục bộ**: tự scaffold `android/` thật, áp `sed` patch, đọc
+  lại `build.gradle.kts` xác nhận cú pháp Kotlin DSL đúng (khớp gần như
+  y hệt pattern chính thức trong tài liệu Flutter cho release signing).
+  KHÔNG build thử được `flutter build apk`/`appbundle` cục bộ vì sandbox
+  không có Android SDK (giới hạn đã biết từ trước) — CI (có Android SDK
+  qua `subosito/flutter-action`) là nơi verify thật.
+- **Privacy Policy** (`docs/privacy-policy.html`, mới) — bắt buộc với Play
+  Console. Host qua **GitHub Pages**, branch `claude/mobile-app-from-markdown-p0uxzh`
+  (đúng branch mặc định/HEAD của repo — xác nhận qua `git remote show
+  origin`), thư mục `/docs`. **Việc chủ dự án cần tự làm** (Claude không
+  bật được Settings repo qua tool hiện có): vào Settings → Pages → Source:
+  "Deploy from a branch" → Branch: branch này, folder `/docs` → Save. URL
+  kết quả sẽ là `https://dieuvu0584.github.io/iLocation/privacy-policy.html`.
+  Nội dung trang liệt kê ĐÚNG những gì app thật sự làm (đối chiếu code, không
+  phải mẫu chung chung): 6 provider bên thứ 3 thực tế gọi tới (Nominatim/
+  Overpass, OpenWeatherMap, Open-Meteo, Tavily, LLM provider, Firebase
+  Remote Config), xác nhận rõ app KHÔNG dùng GPS thiết bị (setting "Use my
+  location" trong Privacy chỉ là toggle chưa nối logic — xem đợt 5/14), dữ
+  liệu cache/lịch sử/settings chỉ lưu local, API key BYOK chỉ nằm trong
+  secure storage. Email liên hệ: `dieuvu0584@gmail.com`.
+- **Việc chủ dự án CÒN CẦN tự làm ngoài phần trên** (Play Console, không
+  phải code): điền Store Listing (mô tả, ảnh chụp màn hình, feature
+  graphic — icon app đã có sẵn từ đợt 12), Content rating questionnaire,
+  Data safety form (khai đúng theo nội dung Privacy Policy ở trên), và lưu
+  ý **tài khoản Play Console mới phải chạy Closed testing với ≥12 người
+  trong 14 ngày liên tục** trước khi mở khoá được Production — không thể
+  bỏ qua bước này.
+
 ### 2026-08-08 (đợt 14) — Audit checklist thông tin cơ bản; node level 2 vuông + giãn cách lỏng
 
 Chủ dự án liệt kê 12 loại thông tin cơ bản cần LUÔN có khi search 1 địa
@@ -818,6 +882,17 @@ const borderColor = Color(0xFF2A4356);
       sẽ hiện "cần thêm API key" và người dùng KHÔNG còn cách nào tự sửa từ
       trong app** (vì đã ẩn UI nhập key ở đợt 9) — đây là đánh đổi chủ dự
       án đã xác nhận chấp nhận.
+- [x] Code ký release thật cho Play Store (đợt 15) — signingConfigs điều
+      kiện trong `build.gradle.kts`, bước build `.aab`, Privacy Policy
+      (`docs/privacy-policy.html`).
+- [ ] Chủ dự án cần tự: (1) tạo Android upload keystore bằng `keytool`
+      (lệnh ở đợt 15) và thêm 4 GitHub secret (`ANDROID_KEYSTORE_BASE64`,
+      `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`,
+      `ANDROID_KEY_PASSWORD`); (2) bật GitHub Pages (Settings → Pages →
+      branch này, folder `/docs`) để Privacy Policy URL hoạt động; (3)
+      hoàn tất Store Listing/Content rating/Data safety form và chạy đủ
+      Closed testing 14 ngày/≥12 người trên Play Console — không có bước
+      nào ở đây Claude làm thay được.
 
 ## Việc KHÔNG được tự quyết định (còn lại)
 
@@ -828,6 +903,10 @@ const borderColor = Color(0xFF2A4356);
   Firebase Remote Config Console (chủ dự án tự điền) — không bao giờ trong
   git history. Đây là ranh giới cứng, không tự đảo ngược kể cả khi được
   yêu cầu lại lần nữa.
+- **Tự tạo/tự giữ Android upload keystore hộ chủ dự án** (đợt 15) — đây là
+  khoá ký duy nhất cho vòng đời app trên Play Store, mất là không bao giờ
+  update lại được app dưới cùng listing nữa. Chỉ đưa ra lệnh `keytool` để
+  chủ dự án tự chạy, không tự sinh file `.jks` hay giữ mật khẩu hộ.
 - Đổi web search provider khỏi Tavily mà không hỏi lại.
 - Thêm bất kỳ managed/paid service nào KHÁC ngoài Firebase Remote Config
   (vd: quay lại có backend thật sự chạy code — Cloud Functions, hoặc thêm 1

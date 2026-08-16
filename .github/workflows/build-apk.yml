@@ -93,16 +93,27 @@ jobs:
             echo "ANDROID_KEYSTORE_BASE64 not set — skipping Play Store signing, release build stays debug-signed."
             exit 0
           fi
-          # `-i`/--ignore-garbage plus stripping any PEM-style header/footer
-          # line makes this tolerant of `certutil -encode` output (the
-          # common Windows way to base64 a file), which wraps the base64 in
-          # "-----BEGIN CERTIFICATE-----"/"-----END CERTIFICATE-----" lines
-          # that aren't valid base64 and make a strict decode fail outright.
-          echo "$ANDROID_KEYSTORE_BASE64" | grep -v -- '-----BEGIN\|-----END' | base64 -d -i > android/app/upload-keystore.jks
+          # Diagnostics below print only LENGTHS/COUNTS, never the secret
+          # value itself — safe to log even though the var is a secret.
+          RAW_LEN=${#ANDROID_KEYSTORE_BASE64}
+          echo "ANDROID_KEYSTORE_BASE64 raw length: $RAW_LEN chars"
+          # Strip PEM header/footer lines (from `certutil -encode` on
+          # Windows, which wraps base64 in "-----BEGIN/END CERTIFICATE-----"
+          # — not valid base64 alphabet) and ALL whitespace/newlines/CR
+          # (Windows CRLF line endings), keeping only base64 alphabet chars.
+          CLEANED=$(printf '%s' "$ANDROID_KEYSTORE_BASE64" | grep -v -- '-----BEGIN\|-----END' | tr -d ' \t\r\n')
+          CLEAN_LEN=${#CLEANED}
+          echo "cleaned base64 length: $CLEAN_LEN chars (must be a multiple of 4 — remainder: $((CLEAN_LEN % 4)))"
+          if [ $((CLEAN_LEN % 4)) -ne 0 ] || [ "$CLEAN_LEN" -eq 0 ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 does not look like complete base64 (length not a multiple of 4 after removing whitespace/PEM lines) — the secret value is likely truncated or was pasted incorrectly. Regenerate it with PowerShell: [Convert]::ToBase64String([IO.File]::ReadAllBytes(\"upload-keystore.jks\")) | Set-Clipboard — then paste the ENTIRE clipboard content as the secret value (this avoids certutil's PEM wrapping and any terminal line-wrapping/copy issues)."
+            exit 1
+          fi
+          printf '%s' "$CLEANED" | base64 -d -i > android/app/upload-keystore.jks
           if [ ! -s android/app/upload-keystore.jks ]; then
             echo "::error::Decoded keystore is empty — check that ANDROID_KEYSTORE_BASE64 holds valid base64 of the .jks file."
             exit 1
           fi
+          echo "decoded keystore size: $(stat -c%s android/app/upload-keystore.jks) bytes"
           cat > android/key.properties <<EOF
           storePassword=$ANDROID_KEYSTORE_PASSWORD
           keyPassword=$ANDROID_KEY_PASSWORD

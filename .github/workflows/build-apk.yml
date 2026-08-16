@@ -93,7 +93,16 @@ jobs:
             echo "ANDROID_KEYSTORE_BASE64 not set — skipping Play Store signing, release build stays debug-signed."
             exit 0
           fi
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/upload-keystore.jks
+          # `-i`/--ignore-garbage plus stripping any PEM-style header/footer
+          # line makes this tolerant of `certutil -encode` output (the
+          # common Windows way to base64 a file), which wraps the base64 in
+          # "-----BEGIN CERTIFICATE-----"/"-----END CERTIFICATE-----" lines
+          # that aren't valid base64 and make a strict decode fail outright.
+          echo "$ANDROID_KEYSTORE_BASE64" | grep -v -- '-----BEGIN\|-----END' | base64 -d -i > android/app/upload-keystore.jks
+          if [ ! -s android/app/upload-keystore.jks ]; then
+            echo "::error::Decoded keystore is empty — check that ANDROID_KEYSTORE_BASE64 holds valid base64 of the .jks file."
+            exit 1
+          fi
           cat > android/key.properties <<EOF
           storePassword=$ANDROID_KEYSTORE_PASSWORD
           keyPassword=$ANDROID_KEY_PASSWORD
